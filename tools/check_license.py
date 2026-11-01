@@ -40,7 +40,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-SKIP_DIRS = {".git", "node_modules", "__pycache__", ".cache", "evidence", "evidence-sample"}
+SKIP_DIRS = {".git", "node_modules", "__pycache__", ".cache", "evidence", "evidence-sample", ".claude", ".agents", "agents"}
 THIRD_PARTY_DIRS = (("vendor",), ("docs", "assets", "vendor"))
 COPYRIGHT_LINE = re.compile(r"^\s*(?:#|//|\*|/\*)?\s*Copyright \(c\)[^\n]*$", re.IGNORECASE | re.MULTILINE)
 
@@ -66,6 +66,14 @@ def check_license(root: Path, problems: list[str]) -> None:
 
 
 def check_metadata(root: Path, problems: list[str]) -> None:
+    partners, readme = root / "tools/partners.json", root / "README.md"
+    if not partners.is_file() or not readme.is_file():
+        problems.append("tools/partners.json and README.md must identify the publication repository.")
+    else:
+        repository_url = json.loads(partners.read_text(encoding="utf-8")).get("repository_url")
+        repositories = re.findall(r"https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", readme.read_text(encoding="utf-8"))
+        if not repository_url or repository_url not in repositories:
+            problems.append("partners.json repository_url must match the repository named in README.md.")
     manifest = root / "package.json"
     if manifest.is_file():
         data = json.loads(manifest.read_text(encoding="utf-8"))

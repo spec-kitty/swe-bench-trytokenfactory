@@ -6,6 +6,8 @@ A joint project of [Spec Kitty](https://spec-kitty.ai), [TokenFactory](https://p
 
 ## What is here
 
+Source repository: [spec-kitty/swe-bench-trytokenfactory](https://github.com/spec-kitty/swe-bench-trytokenfactory).
+
 | Path | What it holds |
 | --- | --- |
 | `docs/` | The static site, served by GitHub Pages. Generated; do not edit by hand. |

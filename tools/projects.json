@@ -1,0 +1,14 @@
+{
+  "astropy": "astronomy tools for Python",
+  "django": "a web framework",
+  "matplotlib": "a charting and plotting library",
+  "seaborn": "statistical charts built on matplotlib",
+  "flask": "a small web framework",
+  "requests": "a library for making web requests",
+  "xarray": "labelled multi-dimensional data arrays",
+  "pylint": "a code checker",
+  "pytest": "a testing tool",
+  "scikit-learn": "a machine learning library",
+  "sphinx": "a documentation builder",
+  "sympy": "a library for symbolic maths"
+}

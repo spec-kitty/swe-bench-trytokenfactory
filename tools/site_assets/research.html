@@ -1,0 +1,77 @@
+<div class="research-content">
+<p class="lede">Every result on this site comes with the full attempt behind it: the agent's trajectory, the patch it submitted, the grader's logs and a checksum. We publish them so you can check our scores and, more usefully, study how these models differ.</p>
+${glossary}
+${coverage}
+
+<section aria-labelledby="pack"><h2 id="pack">What is in the pack</h2>
+<ul>
+<li>One file per attempt, ${attempts} attempts in all, under <code>evidence/models/&lt;model&gt;/attempts/&lt;repository&gt;/&lt;task&gt;.json.gz</code>. Each holds the full trajectory (every message and tool call), the submitted patch, the exit status, the official grade, the harness evidence (evaluation script, applied patch, report, test output, run log) and proof that the repository history was isolated to the base commit.</li>
+<li>Per model: <code>predictions.jsonl</code> in SWE-bench format, and <code>results.json</code> with one row per task.</li>
+<li>Integrity: a SHA-256 manifest for every file, deterministic packing, and a verify command. ${archive}</li>
+</ul>
+<p class="muted">This describes the complete pack; availability above reflects this checkout. Large trajectories can be stored in a sibling compressed file referenced by filename and checksum. Some harness files are absent for empty patches, patch-apply failures or reviewed timeouts. The manifest lists every packed file except itself. Read the <a href="evidence.html">layout and schema</a> for these cases.</p>
+</section>
+
+<section aria-labelledby="paired"><h2 id="paired">Why a paired corpus helps</h2>
+<p>All ${models} models attempted the same ${tasks} tasks, once each, under one agent, one prompt, one set of budgets and one grader. That makes every comparison paired: you can ask not just which model scores higher but which tasks one solves and another does not.</p>
+<p class="muted">The <a href="methodology.html#incidents">incident notes</a> disclose restarts, request-timeout amendments and the unique request prefix used after the serving fault. These are exceptions to identical scaffolding.</p>
+${paired}
+<ul class="paired-facts">
+<li>Tasks no model resolved: <strong>${none}</strong>.</li>
+<li>Tasks every model resolved: <strong>${every}</strong>.</li>
+<li>Tasks resolved by exactly one model: <strong>${exactly_one}</strong>.</li>
+</ul>
+<p class="muted">These counts use the Full instance matrix, also used by the front-page accumulating chart.</p>
+</section>
+
+<section aria-labelledby="studies"><h2 id="studies">Things you could study</h2>
+<ol>
+<li><strong>Failure modes.</strong> Group unresolved attempts by how they ended (empty patch, malformed responses, budget, a patch that fails the tests) and read the trajectories behind each group.</li>
+<li><strong>Localization and editing.</strong> Compare which files and commands different models open before they edit, on the same task.</li>
+<li><strong>Verifier and reward-model data.</strong> Outcome-labelled trajectories from ${models} policies on identical tasks, with labels from the official harness.</li>
+<li><strong>Regrading and audit.</strong> Re-run the SWE-bench harness from each attempt's patch and evaluation script, and check our grading amendments against the retained originals.</li>
+<li><strong>Serving forensics.</strong> Raw responses are kept, so serving faults show up in the data: leaked special tokens, runaway repetition, requests that never returned.</li>
+<li><strong>Cross-model replay.</strong> Take a trajectory prefix and replay it against another model to see where behaviour diverges.</li>
+</ol>
+</section>
+
+<section aria-labelledby="other-evidence"><h2 id="other-evidence">How others publish evidence</h2>
+<p>Publishing trajectories is common practice for agent benchmarks, and we follow it. What we did not find elsewhere, though we did not survey exhaustively, is one release that pairs many models on the same tasks under a single fixed harness, with every trajectory and grading log verifiable by checksum. If we missed one, tell us.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="How others publish evidence"><table>
+<caption>Checked against each project's own pages on ${checked}. Project policies change; follow the links for current terms.</caption>
+<thead><tr><th scope="col">Project</th><th scope="col">What it publishes</th><th scope="col">Source</th></tr></thead>
+<tbody>
+<tr><th scope="row">SWE-bench leaderboard</th><td>Each submission includes predictions, per-task patches, reports and test output, and trajectories; the project says it only accepts leaderboard submissions with reasoning traces, and provides a command to re-grade from the recorded test output.</td><td><a href="https://github.com/SWE-bench/experiments" rel="noopener" target="_blank">SWE-bench experiments</a></td></tr>
+<tr><th scope="row">Terminal-Bench 2.1</th><td>Submissions upload their trial results publicly to Harbor Hub (at least five trials per task), and maintainers review the trajectories before a result is added. Community submissions are currently closed.</td><td><a href="https://github.com/harbor-framework/terminal-bench-2-1" rel="noopener" target="_blank">Terminal-Bench repository</a></td></tr>
+<tr><th scope="row">Epoch AI Benchmarking Hub</th><td>For benchmarks Epoch runs, a per-question record of the prompt, the model's response and the score, viewable in an Inspect log viewer.</td><td><a href="https://epoch.ai/blog/benchmarking-hub-update" rel="noopener" target="_blank">Epoch's publication notes</a></td></tr>
+<tr><th scope="row">Nebius SWE-rebench</th><td>Agent trajectories released as Hugging Face datasets under CC-BY-4.0.</td><td><a href="https://huggingface.co/datasets/nebius/SWE-agent-trajectories" rel="noopener" target="_blank">Nebius trajectory dataset</a></td></tr>
+</tbody></table></div>
+</section>
+
+<section aria-labelledby="findings"><h2 id="findings">What the evidence already showed us</h2>
+<h3>A serving fault</h3>
+<p>The first glm-5.3-flash run failed in most attempts. The saved trajectories showed leaked special tokens and runaway digit strings, and replaying saved prompts reproduced the fault, which disappeared when each request carried a unique token. We restarted the model on that basis. Read the <a href="methodology.html#incidents">serving fault and restart notes</a>.</p>
+<h3>Grading under load</h3>
+<p>Some scikit-learn tasks timed out when many models were graded at once, although the same tests finish in seconds alone. The harness logs made that visible, and we documented a grading amendment for those tasks. Read the <a href="methodology.html#reviewed-timeouts">grading and timeout review notes</a>.</p>
+<h3>Gateway stalls</h3>
+<p>A few attempts ended while waiting for a model response that never arrived. The trajectories show the last completed step, so we could adjudicate them under the published rule instead of guessing. Read the <a href="methodology.html#reviewed-timeouts">published timeout rule</a> and <a href="methodology.html#incidents">gateway incident notes</a>.</p>
+</section>
+
+<section aria-labelledby="start"><h2 id="start">Start here</h2>
+<p>Run these examples from a repository checkout after packing the evidence. The archive sits beside <code>docs/</code>; it is not inside the Pages directory.</p>
+<h3>Verify the pack</h3>
+<pre id="verify-pack"><code>cd evidence &amp;&amp; sha256sum -c MANIFEST.sha256
+# On macOS, use this command inside evidence/:
+shasum -a 256 -c MANIFEST.sha256</code></pre>
+<p>For the stricter option, run <code>python3 tools/pack_evidence.py --source &lt;source tree&gt; --verify</code> from the repository root. It also checks identities, source statuses, indexes and trajectory references.</p>
+<h3>Read one attempt in Python</h3>
+<p>We select the first resolved attempt by model name, then task ID, in alphabetical order at build time. Its path refers to the complete pack; a limited preview may not contain it.</p>
+${attempt_example}
+<h3>Build a solved-by matrix in Python</h3>
+<p>This prints how many tasks each model uniquely solves. It requires all model/task indexes and completed grades so a partial pack cannot turn an absent result into a unique solve.</p>
+<pre id="solved-matrix"><code>${matrix_example}</code></pre>
+<h3>How to cite</h3>
+<pre id="citation"><code>${citation}</code></pre>
+${licence}
+</section>
+</div>

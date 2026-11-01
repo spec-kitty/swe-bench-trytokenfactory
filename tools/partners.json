@@ -1,0 +1,34 @@
+{
+  "repository_url": "https://github.com/spec-kitty/swe-bench-trytokenfactory",
+  "branch": "main",
+  "site_url": "https://spec-kitty.github.io/swe-bench-trytokenfactory/",
+  "research_sources_checked_at": "2026-11-01",
+  "partners": [
+    {
+      "name": "Spec Kitty",
+      "url": "https://spec-kitty.ai",
+      "role": "ran the benchmark and graded predictions with the official SWE-bench harness. We publish results and trajectories so you can inspect the work behind each score."
+    },
+    {
+      "name": "TokenFactory",
+      "url": "https://portal.trytokenfactory.dev/",
+      "role": "gave us one OpenAI-compatible endpoint for all {model_count} models, with tool calling across every route. Use the portal link above to get access."
+    },
+    {
+      "name": "exe.dev",
+      "url": "https://exe.dev",
+      "role": "gave us the worker VMs, in-place resizing and the integration that kept our gateway credential off every worker."
+    }
+  ],
+  "facts": [
+    {
+      "id": "vm-tag",
+      "value": "swebench",
+      "source": "output of `ssh exe.dev ls` on 2026-10-31, listing all 16 worker VMs with the #swebench tag"
+    },
+    {
+      "id": "key-search",
+      "source": "search of artifacts/fleet-backups, artifacts/control-backup, artifacts/report, configs, scripts, tests and the top-level docs for the literal gateway key value on 2026-11-01 returned no matches"
+    }
+  ]
+}

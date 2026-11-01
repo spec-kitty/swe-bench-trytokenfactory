@@ -15,6 +15,10 @@ class LicenseGateTests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, True)
+        (self.tmp / "tools").mkdir()
+        repository = "https://github.com/spec-kitty/swe-bench-trytokenfactory"
+        (self.tmp / "tools/partners.json").write_text(json.dumps({"repository_url": repository}))
+        (self.tmp / "README.md").write_text(f"Source repository: [source]({repository}).\n")
         (self.tmp / "LICENSE").write_text(gate.MIT_TEXT, encoding="utf-8")
         (self.tmp / "NOTICE").write_text(
             "Project\n=======\n\nThis repository is licensed under the MIT License (see LICENSE),\n"
@@ -35,6 +39,12 @@ class LicenseGateTests(unittest.TestCase):
 
     def test_real_repository_passes(self):
         self.assertEqual(gate.run(REPO), [])
+
+    def test_repository_url_must_match_readme(self):
+        (self.tmp / "tools/partners.json").write_text(json.dumps({"repository_url": "https://github.com/example/wrong"}))
+        self.assertTrue(any("repository_url must match" in p for p in self.problems()))
+        (self.tmp / "README.md").write_text("No repository link")
+        self.assertTrue(any("repository_url must match" in p for p in self.problems()))
 
     def test_contributors_holder_is_rejected(self):
         text = gate.MIT_TEXT.replace(gate.HOLDER, "Contributors")
@@ -84,7 +94,6 @@ class LicenseGateTests(unittest.TestCase):
         self.assertTrue(any("published copy differs" in p for p in self.problems()))
 
     def test_other_copyright_holder_in_first_party_files_is_rejected_but_vendor_is_exempt(self):
-        (self.tmp / "tools").mkdir()
         (self.tmp / "tools" / "x.py").write_text("# Copyright (c) 2026 The Contributors\n", encoding="utf-8")
         self.assertTrue(any("tools/x.py" in p for p in self.problems()))
         (self.tmp / "tools" / "x.py").write_text(f"# Copyright (c) 2026 {gate.HOLDER}\n", encoding="utf-8")

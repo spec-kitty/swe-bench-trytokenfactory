@@ -628,7 +628,57 @@ def pack(source, out, models=None, limit=None, jobs=8, cache=None):
     return summary
 
 
-def verify(source, out, models=None, limit=None):
+VERIFY_CACHE_VERSION = 1
+
+
+def _hash_file(args):
+    relative, path = args
+    return relative, file_digest(path)
+
+
+def _verify_attempt(args):
+    """Check one attempt in a worker process; the result is cached by the attempt file's manifest digest."""
+    out, relative, manifest_sha, model, instance, cache_dir = args
+    out, cache_dir = Path(out), Path(cache_dir)
+    cached = cache_dir / (digest(encoded([model, instance])) + ".json")
+    if cached.exists():
+        try:
+            old = json.loads(cached.read_bytes())
+            if old.get("v") == VERIFY_CACHE_VERSION and old.get("manifest_sha") == manifest_sha:
+                return old["data"]
+        except ValueError:
+            pass
+    path = out / relative
+    stored = json.loads(gzip.decompress(path.read_bytes()))
+    trajectory = stored.get("trajectory")
+    refs = {}
+    if isinstance(trajectory, dict) and "file" in trajectory:
+        refs = {trajectory["file"]: trajectory.get("sha256")}
+    elif isinstance(trajectory, dict) and "files" in trajectory:
+        refs = {ref["file"]: ref.get("sha256") for ref in trajectory["files"]}
+    del stored
+    if refs:
+        with _LARGE_ATTEMPT_LOCK:
+            payload = unpack(path, out)
+    else:
+        payload = unpack(path, out)
+    data = {"refs": refs, "schema": payload["schema"], "model": payload["model"], "instance_id": payload["instance_id"],
+            "status": payload["status"], "repo": payload["repo"], "base_commit": payload["base_commit"],
+            "reviewed_test_timeout": payload["reviewed_test_timeout"],
+            "has_grading_amendment": bool((payload["grade"] or {}).get("grading_amendment")),
+            "grading_amendment": payload["grading_amendment"], "config_sha256": payload["config_sha256"],
+            "protocol_amendment": payload["protocol_amendment"],
+            "grading_groups": [sorted(g) for g in [payload["grading"], *([payload["supplemental_verified"]["grading"]]
+                                                   if "supplemental_verified" in payload else [])]],
+            "metrics": metrics(payload), "prediction": prediction_row(payload)}
+    fd, temporary = tempfile.mkstemp(prefix=".tmp-", dir=cached.parent)  # cache lives outside the evidence tree
+    with os.fdopen(fd, "wb") as stream:
+        stream.write(encoded({"v": VERIFY_CACHE_VERSION, "manifest_sha": manifest_sha, "data": data}))
+    os.replace(temporary, cached)
+    return data
+
+
+def verify(source, out, models=None, limit=None, jobs=8):
     out = Path(out)
     context = load_context(Path(source))
     files = output_files(out)
@@ -642,8 +692,11 @@ def verify(source, out, models=None, limit=None):
         manifest[relative] = sha
     require(list(manifest) == sorted(manifest), "Manifest is not sorted.")
     require(set(manifest) == set(files) - {"MANIFEST.sha256"}, "Manifest file membership mismatch.")
+    with ProcessPoolExecutor(max_workers=jobs, mp_context=_FORK) as pool:
+        digests = dict(pool.map(_hash_file, [(r, files[r]) for r in manifest], chunksize=64))
+    print(f"Hashed {len(digests)} files.", flush=True)
     for relative, sha in manifest.items():
-        require(file_digest(files[relative]) == sha, "Manifest checksum mismatch.")
+        require(digests[relative] == sha, "Manifest checksum mismatch.")
         if relative.endswith(".gz"):
             require(files[relative].stat().st_size <= MAX_COMPRESSED, "Evidence file exceeds compressed size limit.")
         else:
@@ -662,8 +715,13 @@ def verify(source, out, models=None, limit=None):
     config_models = {}
     for sha, entry in configs.items():
         require(digest(encoded(entry["config"])) == sha, "Config digest mismatch.")
+    cache_dir = REPO / ".cache/verify" / digest(str(Path(out).resolve()).encode())
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    pool = ProcessPoolExecutor(max_workers=jobs, mp_context=_FORK)
+    done = 0
     for model in selection["models"]:
         metrics_index, predictions = {}, []
+        jobs_list = []
         for m, instance in keys:
             if m != model:
                 continue
@@ -671,38 +729,40 @@ def verify(source, out, models=None, limit=None):
             relative = f"models/{model}/attempts/{repo_slug(metadata['repo'])}/{instance}.json.gz"
             require(relative in files, "Selected attempt is missing from evidence tree.")
             expected.add(relative)
-            stored = json.loads(gzip.decompress(files[relative].read_bytes()))
-            if isinstance(stored.get("trajectory"), dict) and "file" in stored["trajectory"]:
-                expected.add(stored["trajectory"]["file"])
-            if isinstance(stored.get("trajectory"), dict) and "files" in stored["trajectory"]:
-                expected.update(ref["file"] for ref in stored["trajectory"]["files"])
-            payload = unpack(files[relative], out)
-            require(payload["schema"] == SCHEMA and payload["model"] == model and payload["instance_id"] == instance,
+            jobs_list.append((instance, metadata, relative, (str(out), relative, manifest[relative], model, instance, str(cache_dir))))
+        for (instance, metadata, relative, _), data in zip(jobs_list, pool.map(_verify_attempt, [j[3] for j in jobs_list], chunksize=4)):
+            expected.update(data["refs"])
+            for ref, claimed in data["refs"].items():
+                # The attempt's recorded part digest must match the manifest even when its result came from cache.
+                require(manifest.get(ref) == claimed, "Trajectory part checksum mismatch.")
+            require(data["schema"] == SCHEMA and data["model"] == model and data["instance_id"] == instance,
                     "Attempt schema or path identity mismatch.")
-            require(payload["status"] == context[0][(model, instance)], "Attempt status disagrees with instances.csv.")
-            require(all(payload[k] == metadata[k] for k in ("repo", "base_commit")), "Dataset metadata mismatch.")
-            require(payload["reviewed_test_timeout"] == context[3].get((model, instance)), "Timeout review mismatch.")
-            amendment = context[2].get(instance) if (payload["grade"] or {}).get("grading_amendment") else None
-            require(payload["grading_amendment"] == amendment, "Amendment mismatch.")
-            sha = payload["config_sha256"]
+            require(data["status"] == context[0][(model, instance)], "Attempt status disagrees with instances.csv.")
+            require(all(data[k] == metadata[k] for k in ("repo", "base_commit")), "Dataset metadata mismatch.")
+            require(data["reviewed_test_timeout"] == context[3].get((model, instance)), "Timeout review mismatch.")
+            amendment = context[2].get(instance) if data["has_grading_amendment"] else None
+            require(data["grading_amendment"] == amendment, "Amendment mismatch.")
+            sha = data["config_sha256"]
             require(sha is None or sha in configs, "Unknown config reference.")
             if sha is not None:
                 config_models.setdefault(sha, set()).add(model)
-                require(payload["protocol_amendment"] == configs[sha]["config"].get("protocol_amendment"),
+                require(data["protocol_amendment"] == configs[sha]["config"].get("protocol_amendment"),
                         "Protocol amendment mismatch.")
-            metrics_index[instance] = metrics(payload)
-            prediction = prediction_row(payload)
-            if prediction is not None:
-                predictions.append(prediction)
-            for group in [payload["grading"], *([payload["supplemental_verified"]["grading"]]
-                          if "supplemental_verified" in payload else [])]:
+            metrics_index[instance] = data["metrics"]
+            if data["prediction"] is not None:
+                predictions.append(data["prediction"])
+            for group in data["grading_groups"]:
                 require(set(group) == set(GRADING_FILES), "Invalid grading schema.")
+            done += 1
+            if done % 500 == 0:
+                print(f"Verified {done}/{len(keys)} attempts.", flush=True)
         result_path = f"models/{model}/results.json"
         prediction_path = f"models/{model}/predictions.jsonl"
         expected.update([result_path, prediction_path])
         require(json.loads((out / result_path).read_bytes()) == metrics_index, "Results index mismatch.")
         actual = [json.loads(line) for line in (out / prediction_path).read_bytes().splitlines()]
         require(actual == predictions, "Predictions index mismatch.")
+    pool.shutdown()
     require(set(files) == expected, "Unexpected evidence files.")
     require(set(configs) == set(config_models) and all(configs[sha]["models"] == sorted(ms)
                                                     for sha, ms in config_models.items()), "Config model index mismatch.")
@@ -725,7 +785,7 @@ def main(argv=None):
     load_secret_values(args.source)
     try:
         if args.verify:
-            verify(args.source, args.out, args.models, args.limit)
+            verify(args.source, args.out, args.models, args.limit, args.jobs)
         else:
             TRUST_CACHE = args.trust_cache
             pack(args.source, args.out, args.models, args.limit, args.jobs)

@@ -230,7 +230,7 @@ class BuiltResearchTests(unittest.TestCase):
         for path in docs.rglob('*.html'):
             page = path.read_text()
             nav = re.search(r'<nav aria-label="Main">(.*?)</nav>', page).group(1)
-            self.assertRegex(nav, r'Evidence</a><a href="(?:../)?research.html"(?: aria-current="page")?>For researchers</a>')
+            self.assertRegex(nav, r'Evidence</a><a href="(?:\.\./|/swe-bench-trytokenfactory/)?research.html"(?: aria-current="page")?>For researchers</a>')
         source = ROOT.parent/'artifacts/report/instances.csv'
         # Published clones can validate the exported matrix without the private
         # collection. In this workspace also compare directly to its source.
@@ -246,7 +246,7 @@ class BuiltResearchTests(unittest.TestCase):
         for key, n in [('none', 0), ('every', len(models)), ('exactly_one', 1)]:
             self.assertEqual(facts[key], sum(len(s) == n for s in solved.values()))
         self.assertEqual(tuple(facts['example']), min((r['model'], r['instance_id']) for r in rows if r['status'] == 'resolved'))
-        self.assertEqual(check_links.check(docs)[0], [])
+        self.assertEqual(check_links.check(docs, publish='/swe-bench-trytokenfactory/' in (docs/'index.html').read_text())[0], [])
         b.guard_docs(docs)
 
     def test_front_card_and_context_links(self):

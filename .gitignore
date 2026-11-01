@@ -1,0 +1,6 @@
+.cache/
+evidence-sample/
+__pycache__/
+tasks/
+*.log
+.DS_Store

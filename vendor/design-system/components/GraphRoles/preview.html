@@ -1,0 +1,33 @@
+<!-- @dsCard group="Graph" height=330 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Graph roles — preview</title>
+<style>
+  .g { position:relative; height:250px; margin:var(--space-6); background:var(--surface-raised); border:1px solid var(--line); border-radius:var(--radius-lg); }
+  .g svg.edges { position:absolute; inset:0; width:100%; height:100%; }
+  .n { position:absolute; display:flex; gap:8px; align-items:center; border:1.5px solid; border-radius:var(--radius-md); padding:6px 12px; font-size:14px; line-height:20px; font-weight:500; color:var(--ink); }
+  .frame { border-color:var(--role-frame); background:var(--role-frame-soft); color:var(--ink); }
+  .selector { border-color:var(--role-selector); background:var(--role-selector-soft); }
+  .move { border-color:var(--role-move); background:var(--role-move-soft); }
+  .commitment { border-color:var(--role-commitment); background:var(--role-commitment-soft); }
+  .legend { display:flex; gap:var(--space-6); margin:0 var(--space-6); font-size:13px; color:var(--ink-muted); }
+  .legend span { display:flex; gap:6px; align-items:center; }
+</style></head>
+<body>
+<div class="g">
+  <svg class="edges" aria-hidden="true">
+    <line x1="170" y1="36" x2="370" y2="36" stroke="var(--role-frame)" stroke-opacity=".55" stroke-width="1.5"/>
+    <line x1="380" y1="52" x2="180" y2="120" stroke="var(--role-selector)" stroke-opacity=".55" stroke-width="1.5"/>
+    <line x1="400" y1="52" x2="470" y2="120" stroke="var(--role-selector)" stroke-opacity=".55" stroke-width="1.5"/>
+    <line x1="180" y1="150" x2="290" y2="200" stroke="var(--role-move)" stroke-opacity=".55" stroke-width="1.5"/>
+    <line x1="470" y1="150" x2="360" y2="200" stroke="var(--role-move)" stroke-opacity=".55" stroke-width="1.5"/>
+  </svg>
+  <div class="n frame" style="left:24px;top:18px"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 3 L21 12 L12 21 L3 12 Z" fill="none" stroke="var(--role-frame)" stroke-width="2.2"/></svg>auth trust boundaries</div>
+  <div class="n selector" style="left:330px;top:18px"><svg width="16" height="16" viewBox="0 0 24 24"><g fill="none" stroke="var(--role-selector)" stroke-width="2.2" stroke-linecap="round"><path d="M12 4 L12 10"/><path d="M12 10 L6.5 19"/><path d="M12 10 L17.5 19"/></g><circle cx="6.5" cy="19" r="1.7" fill="var(--role-selector)"/><circle cx="17.5" cy="19" r="1.7" fill="var(--role-selector)"/></svg>auth-strategy</div>
+  <div class="n move" style="left:24px;top:118px"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="2.4" fill="var(--role-move)"/><circle cx="6.8" cy="17" r="2.4" fill="var(--role-move)"/><circle cx="17.2" cy="17" r="2.4" fill="var(--role-move)"/></svg>issue short-lived credentials</div>
+  <div class="n move" style="left:380px;top:118px"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="2.4" fill="var(--role-move)"/><circle cx="6.8" cy="17" r="2.4" fill="var(--role-move)"/><circle cx="17.2" cy="17" r="2.4" fill="var(--role-move)"/></svg>mTLS between services</div>
+  <div class="n commitment" style="left:150px;top:196px"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="var(--role-commitment)"/></svg>all customer-data services are tenant-scoped</div>
+</div>
+<div class="legend"><span>◇ frame</span><span>Y selector</span><span>∴ move</span><span>● commitment</span></div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Mascot" height=380 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Kitty — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var S = window.SpecKitty, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',null, h('div',{className:'sk-row',style:{gap:'32px'}}, h(S.Kitty,{pose:'full',size:120}), ['attentive','reading','thinking','pleased','puzzled'].map(function(m){return h('div',{key:m,style:{textAlign:'center',fontSize:13,color:'var(--ink-muted)'}}, h(S.Kitty,{mood:m,size:88}), h('div',null,m));})), h('div',{className:'sk-row',style:{gap:'32px',paddingTop:0}}, [['spec','Spec Kitty'],['brain','Brain Kitty'],['build','Build Kitty'],['factory','Kitty Factory'],['team','Team Kitty']].map(function(p){return h('div',{key:p[0],style:{textAlign:'center',fontSize:13,color:'var(--ink-muted)'}}, h(S.Kitty,{product:p[0],size:p[0]==='factory'?200:(p[0]==='team'?160:88),label:p[1]}), h('div',null,p[1]));}))));
+</script>
+</body>
+</html>

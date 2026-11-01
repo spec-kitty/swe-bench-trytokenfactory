@@ -1,0 +1,53 @@
+<!-- @dsCard height=320 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec Kitty</title>
+<style>
+  html, body { margin:0; height:100%; }
+  body { background:var(--surface); color:var(--ink); font-family:var(--font-sans); overflow:hidden; }
+  .cover { position:relative; width:960px; height:320px; overflow:hidden; }
+  .art { position:absolute; top:0; left:480px; width:480px; height:320px; overflow:hidden; }
+  .art svg { display:block; width:480px; height:320px; }
+  .spec { fill:var(--spec); } .brain { fill:var(--brain); } .build { fill:var(--build); } .factory { fill:var(--factory); } .team { fill:var(--team); }
+  .deep { fill:var(--ink); }
+  .card { rx:var(--radius-lg); }
+  .md { rx:var(--radius-md); }
+  .lens { fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round; }
+  .lens.cut { stroke:var(--spec); }
+  .lens.soft { stroke:var(--surface); }
+  .words { position:absolute; left:var(--space-8); bottom:var(--space-8); max-width:440px; }
+  .name { margin:0; font-family:var(--font-serif); font-size:116px; line-height:.95; font-weight:500; letter-spacing:-.02em; color:var(--ink); }
+  .tag { margin:var(--space-3) 0 0 4px; font-size:14px; line-height:20px; color:var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 480 320" width="480" height="320">
+<!--
+  blocks      spec 160×304 bled off the top (the flagship's bow, largest) · ink 272×208 bleeding off the right · brain 64×48, build 48×112, factory 48×48, team 48×48 as satellites (the family's other bows) — ≈40% of 960×320
+  arrangement one tall spec slab with an ink slab stepped down beside it, the three sister products as small satellites; space-4 gutters
+  pattern     spectacles, from "a well-read cat in round spectacles": lens pairs (two rings + bridge) at a space-16 pitch — surface on the spec slab, spec cut into the ink slab, ink on the ground
+  scales      sides in space-4 multiples; gutters space-4; pitch space-16; corners radius-lg (slabs), radius-md (satellites)
+-->
+<rect class="spec card" x="48" y="-16" width="160" height="304"/>
+<rect class="deep card" x="224" y="80" width="272" height="208"/>
+<rect class="build md" x="-16" y="176" width="48" height="112"/>
+<rect class="brain md" x="224" y="16" width="64" height="48"/>
+<rect class="factory md" x="-16" y="112" width="48" height="48"/>
+<rect class="team md" x="-16" y="48" width="48" height="48"/>
+<g class="lens soft"><circle cx="100" cy="72" r="20"/><circle cx="156" cy="72" r="20"/><path d="M120 70 C124 64 132 64 136 70"/></g>
+<g class="lens cut"><circle cx="292" cy="160" r="20"/><circle cx="348" cy="160" r="20"/><path d="M312 158 C316 152 324 152 328 158"/></g>
+<g class="lens cut"><circle cx="356" cy="224" r="20"/><circle cx="412" cy="224" r="20"/><path d="M376 222 C380 216 388 216 392 222"/></g>
+<g class="lens"><circle cx="348" cy="40" r="20"/><circle cx="404" cy="40" r="20"/><path d="M368 38 C372 32 380 32 384 38"/></g>
+</svg>
+</div>
+<div class="words">
+<h1 class="name">Spec<br>Kitty</h1>
+<p class="tag">One kitty brand. Many kitty products. A well-read cat on your side.</p>
+</div>
+</div>
+</body>
+</html>

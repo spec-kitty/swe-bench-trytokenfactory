@@ -1,0 +1,376 @@
+{
+  "v": 3,
+  "assetGroups": {
+    "Mascot": {
+      "files": {
+        "kitty-full-night.svg": {
+          "name": "kitty-full-night.svg",
+          "blob": "960aedd9828f072c399c70797248033d",
+          "size": 35766,
+          "type": "image/svg+xml"
+        },
+        "kitty-full.svg": {
+          "name": "kitty-full.svg",
+          "blob": "6ab3759987a62f8dc9c370f6ac2225cf",
+          "size": 35385,
+          "type": "image/svg+xml"
+        },
+        "kitty-mark-night.svg": {
+          "name": "kitty-mark-night.svg",
+          "blob": "f764dd728f29e547ec730d6de3b2150a",
+          "size": 36286,
+          "type": "image/svg+xml"
+        },
+        "kitty-mark.svg": {
+          "name": "kitty-mark.svg",
+          "blob": "e19b3a08fc8bf7625efc612f07106228",
+          "size": 35905,
+          "type": "image/svg+xml"
+        },
+        "spectacles-night.svg": {
+          "blob": "aaf904b898428de1d79c26a196c6d03f",
+          "name": "spectacles-night.svg",
+          "size": 341,
+          "type": "image/svg+xml"
+        },
+        "spectacles.svg": {
+          "blob": "2450e09fc6020c67c569576854f15d23",
+          "name": "spectacles.svg",
+          "size": 341,
+          "type": "image/svg+xml"
+        }
+      },
+      "name": "Mascot",
+      "order": [
+        "kitty-mark.svg",
+        "kitty-mark-night.svg",
+        "kitty-full.svg",
+        "kitty-full-night.svg",
+        "spectacles.svg",
+        "spectacles-night.svg"
+      ],
+      "tile": "l"
+    },
+    "Moods": {
+      "files": {
+        "kitty-pleased.svg": {
+          "name": "kitty-pleased.svg",
+          "blob": "556a2416d99fc3f75222f96038d6ad48",
+          "size": 35648,
+          "type": "image/svg+xml"
+        },
+        "kitty-puzzled.svg": {
+          "name": "kitty-puzzled.svg",
+          "blob": "768a9af441037e7643276b558412753d",
+          "size": 35175,
+          "type": "image/svg+xml"
+        },
+        "kitty-reading.svg": {
+          "name": "kitty-reading.svg",
+          "blob": "dfc0ae8f6c3555bd65585ff300a82bec",
+          "size": 35502,
+          "type": "image/svg+xml"
+        },
+        "kitty-thinking.svg": {
+          "name": "kitty-thinking.svg",
+          "blob": "fcb5635490f69c5b4e3ff63f0d40a11d",
+          "size": 35154,
+          "type": "image/svg+xml"
+        }
+      },
+      "name": "Moods",
+      "order": [
+        "kitty-reading.svg",
+        "kitty-thinking.svg",
+        "kitty-pleased.svg",
+        "kitty-puzzled.svg"
+      ],
+      "tile": "m"
+    },
+    "Origins": {
+      "files": {
+        "naif-kitty.png": {
+          "blob": "a6e681b793a534c73f711b7ed40c43e7",
+          "name": "naif-kitty.png",
+          "size": 529870,
+          "type": "image/png"
+        },
+        "team-drawing.png": {
+          "name": "team-drawing.png",
+          "blob": "667a70d2271fe28c930c7ca783a134f1",
+          "size": 49725,
+          "type": "image/png"
+        }
+      },
+      "name": "Origins",
+      "order": [
+        "naif-kitty.png",
+        "team-drawing.png"
+      ],
+      "tile": "m"
+    },
+    "Products": {
+      "name": "Products",
+      "tile": "m",
+      "order": [
+        "kitty-spec.svg",
+        "kitty-brain.svg",
+        "kitty-build.svg",
+        "kitty-factory.svg",
+        "kitty-team.svg"
+      ],
+      "files": {
+        "kitty-spec.svg": {
+          "name": "kitty-spec.svg",
+          "blob": "be283a3989511614d6c38af60288621f",
+          "size": 35905,
+          "type": "image/svg+xml"
+        },
+        "kitty-brain.svg": {
+          "name": "kitty-brain.svg",
+          "blob": "655d5dbed4f0af27ac7021034b27b6fa",
+          "size": 33559,
+          "type": "image/svg+xml"
+        },
+        "kitty-build.svg": {
+          "name": "kitty-build.svg",
+          "blob": "4d7be7ac24d7e200f371eb429baacaf5",
+          "size": 33706,
+          "type": "image/svg+xml"
+        },
+        "kitty-factory.svg": {
+          "name": "kitty-factory.svg",
+          "blob": "ef02913cf5031e33306c3ed72b5ff24b",
+          "size": 103144,
+          "type": "image/svg+xml"
+        },
+        "kitty-team.svg": {
+          "name": "kitty-team.svg",
+          "blob": "290f165bd8509962ddb39a823bfa8801",
+          "size": 148486,
+          "type": "image/svg+xml"
+        }
+      }
+    },
+    "Brain Kitty": {
+      "name": "Brain Kitty",
+      "tile": "m",
+      "order": [
+        "kitty-brain-reading.svg",
+        "kitty-brain-thinking.svg",
+        "kitty-brain-pleased.svg",
+        "kitty-brain-puzzled.svg",
+        "kitty-brain-night.svg",
+        "kitty-brain-reading-night.svg",
+        "kitty-brain-thinking-night.svg",
+        "kitty-brain-pleased-night.svg",
+        "kitty-brain-puzzled-night.svg",
+        "glasses-brain.svg",
+        "glasses-brain-night.svg",
+        "glasses-brain-small.svg",
+        "glasses-brain-small-night.svg"
+      ],
+      "files": {
+        "kitty-brain-reading.svg": {
+          "name": "kitty-brain-reading.svg",
+          "blob": "329a542b077936997ee16029a0d46e9f",
+          "size": 33559,
+          "type": "image/svg+xml"
+        },
+        "kitty-brain-thinking.svg": {
+          "name": "kitty-brain-thinking.svg",
+          "blob": "93c276cff4e6678ea17c97b70f8884a3",
+          "size": 33546,
+          "type": "image/svg+xml"
+        },
+        "kitty-brain-pleased.svg": {
+          "name": "kitty-brain-pleased.svg",
+          "blob": "c5cfa1ac4b833ea2bdbe3039cface059",
+          "size": 33701,
+          "type": "image/svg+xml"
+        },
+        "kitty-brain-puzzled.svg": {
+          "name": "kitty-brain-puzzled.svg",
+          "blob": "564a836d6ef05839c01e1863094fc354",
+          "size": 33567,
+          "type": "image/svg+xml"
+        },
+        "kitty-brain-night.svg": {
+          "name": "kitty-brain-night.svg",
+          "blob": "cb979095bd981e943a8294d307582307",
+          "size": 33940,
+          "type": "image/svg+xml"
+        },
+        "kitty-brain-reading-night.svg": {
+          "name": "kitty-brain-reading-night.svg",
+          "blob": "1596a49a535347efcb7be3510cff2fb2",
+          "size": 33940,
+          "type": "image/svg+xml"
+        },
+        "kitty-brain-thinking-night.svg": {
+          "name": "kitty-brain-thinking-night.svg",
+          "blob": "1daf9fbe9cc30d8768d07f44d8fe0b86",
+          "size": 33927,
+          "type": "image/svg+xml"
+        },
+        "kitty-brain-pleased-night.svg": {
+          "name": "kitty-brain-pleased-night.svg",
+          "blob": "10961893ccc9dca7ffc1fe580c0a9967",
+          "size": 34082,
+          "type": "image/svg+xml"
+        },
+        "kitty-brain-puzzled-night.svg": {
+          "name": "kitty-brain-puzzled-night.svg",
+          "blob": "4dd8a623e3970908b3d559d640f7b89f",
+          "size": 33948,
+          "type": "image/svg+xml"
+        },
+        "glasses-brain.svg": {
+          "name": "glasses-brain.svg",
+          "blob": "163e68713da059f6b0c50670f18009a9",
+          "size": 895,
+          "type": "image/svg+xml"
+        },
+        "glasses-brain-night.svg": {
+          "name": "glasses-brain-night.svg",
+          "blob": "2022ee03573466bf20aa45e04eedb82d",
+          "size": 895,
+          "type": "image/svg+xml"
+        },
+        "glasses-brain-small.svg": {
+          "name": "glasses-brain-small.svg",
+          "blob": "f89d87f9ae9dc2f8355cbc940b6a400c",
+          "size": 657,
+          "type": "image/svg+xml"
+        },
+        "glasses-brain-small-night.svg": {
+          "name": "glasses-brain-small-night.svg",
+          "blob": "f00ddfd4832a6624b68505e1dc018bf7",
+          "size": 657,
+          "type": "image/svg+xml"
+        }
+      }
+    },
+    "App icon": {
+      "name": "App icon",
+      "tile": "s",
+      "order": [
+        "brain-kitty-icon-macos-1024.svg",
+        "brain-kitty-icon-macos-1024.png",
+        "brain-kitty-icon-flat-1024.svg",
+        "brain-kitty-icon-flat-1024.png",
+        "brain-kitty-icon-256.png",
+        "brain-kitty-icon-128.png",
+        "brain-kitty-icon-64.png",
+        "brain-kitty-icon-48.png",
+        "brain-kitty-icon-32.png",
+        "brain-kitty-icon-24.png",
+        "brain-kitty-icon-16.png"
+      ],
+      "files": {
+        "brain-kitty-icon-macos-1024.svg": {
+          "name": "brain-kitty-icon-macos-1024.svg",
+          "blob": "9bb7ef22ff57bf7cb7cd37a5cb8b8507",
+          "size": 34068,
+          "type": "image/svg+xml"
+        },
+        "brain-kitty-icon-macos-1024.png": {
+          "name": "brain-kitty-icon-macos-1024.png",
+          "blob": "e25e7e86f51e70527989432e9534646d",
+          "size": 80199,
+          "type": "image/png"
+        },
+        "brain-kitty-icon-flat-1024.svg": {
+          "name": "brain-kitty-icon-flat-1024.svg",
+          "blob": "95ffa87be01087f72a3ebed3d10da819",
+          "size": 33796,
+          "type": "image/svg+xml"
+        },
+        "brain-kitty-icon-flat-1024.png": {
+          "name": "brain-kitty-icon-flat-1024.png",
+          "blob": "29ddfe61fab3cfccd01ede7bcf36fa5d",
+          "size": 80881,
+          "type": "image/png"
+        },
+        "brain-kitty-icon-256.png": {
+          "name": "brain-kitty-icon-256.png",
+          "blob": "207c4fc5c2ce9b3a1d61646beacfb9b3",
+          "size": 17221,
+          "type": "image/png"
+        },
+        "brain-kitty-icon-128.png": {
+          "name": "brain-kitty-icon-128.png",
+          "blob": "83bcb68967db80c56e8ef3a671653436",
+          "size": 8235,
+          "type": "image/png"
+        },
+        "brain-kitty-icon-64.png": {
+          "name": "brain-kitty-icon-64.png",
+          "blob": "b6a1ba3f01868887ba91a7cbc7312cf6",
+          "size": 3818,
+          "type": "image/png"
+        },
+        "brain-kitty-icon-48.png": {
+          "name": "brain-kitty-icon-48.png",
+          "blob": "62185d998f38974b75f321ba05105db9",
+          "size": 2760,
+          "type": "image/png"
+        },
+        "brain-kitty-icon-32.png": {
+          "name": "brain-kitty-icon-32.png",
+          "blob": "da181b423c9bb34bdc2223aa97c01147",
+          "size": 489,
+          "type": "image/png"
+        },
+        "brain-kitty-icon-24.png": {
+          "name": "brain-kitty-icon-24.png",
+          "blob": "ace464b8b3f05c3ac603c29b4e71c8cf",
+          "size": 416,
+          "type": "image/png"
+        },
+        "brain-kitty-icon-16.png": {
+          "name": "brain-kitty-icon-16.png",
+          "blob": "8d872c69dd4097a8fb383be0e443ec84",
+          "size": 344,
+          "type": "image/png"
+        }
+      }
+    }
+  },
+  "blobs": {},
+  "createdOnFiles": {
+    "at": "2026-09-24T05:43:09Z",
+    "v": 1
+  },
+  "docs": {
+    "sections": []
+  },
+  "groups": [
+    "Mascot",
+    "Products",
+    "Moods",
+    "Brain Kitty",
+    "App icon",
+    "Origins"
+  ],
+  "lastChange": {
+    "by": "Ronald Ashri",
+    "at": "2026-10-23T12:46:05Z",
+    "via": "Claude (Cowork)",
+    "note": "Brain Kitty: moods and Night art, glasses for small sizes, app icon (macOS and flat masters, hinted 16/24/32). Rules for app icons, small-size glasses per product, neutral notable states, and dense text sizes."
+  },
+  "layout": "files",
+  "libraries": [
+    {
+      "name": "react",
+      "version": "18"
+    },
+    {
+      "name": "react-dom",
+      "version": "18"
+    }
+  ],
+  "namespace": "SpecKitty",
+  "sections": {},
+  "title": "Spec Kitty"
+}

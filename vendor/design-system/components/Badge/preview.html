@@ -1,0 +1,12 @@
+<!-- @dsCard group="Status" height=128 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Badge — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var S = window.SpecKitty, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',null, h('div',{className:'sk-row',style:{paddingBottom:0}}, h(S.Badge,null,'Draft'), h(S.Badge,{tone:'accent'},'In review'), h(S.Badge,{tone:'success'},'Accepted'), h(S.Badge,{tone:'warning'},'Waiting on you'), h(S.Badge,{tone:'danger'},'Blocked'), h(S.Badge,{tone:'key'},'WP02')), h('div',{className:'sk-row'}, h(S.Badge,{tone:'spec'},'Spec Kitty'), h(S.Badge,{tone:'brain'},'Brain Kitty'), h(S.Badge,{tone:'build'},'Build Kitty'), h(S.Badge,{tone:'factory'},'Kitty Factory'), h(S.Badge,{tone:'team'},'Team Kitty'))));
+</script>
+</body>
+</html>

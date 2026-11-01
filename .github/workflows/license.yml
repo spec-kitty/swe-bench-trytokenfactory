@@ -1,0 +1,14 @@
+name: Licence gate
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  license:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check licence, NOTICE and metadata
+        run: python3 tools/check_license.py

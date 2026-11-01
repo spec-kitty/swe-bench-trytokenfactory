@@ -1,0 +1,43 @@
+SWE-bench TokenFactory benchmark
+================================
+
+This repository is licensed under the MIT License (see LICENSE),
+Copyright (c) 2026 Spec Kitty, Inc.
+
+Bundled third-party code
+------------------------
+
+Apache ECharts 6.1.0 is bundled, unmodified, in vendor/echarts/echarts.min.js
+and published with the site as docs/assets/vendor/echarts/echarts.min.js.
+It is distributed under the Apache License, Version 2.0. Its license text is
+kept beside it (vendor/echarts/LICENSE) and its notice is reproduced below in
+accordance with that license.
+Upstream: https://github.com/apache/echarts
+
+--------------------------------------------------------------------------------
+Apache ECharts NOTICE
+--------------------------------------------------------------------------------
+
+Apache ECharts
+Copyright 2017-2026 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (https://www.apache.org/).
+
+Spec Kitty design system
+------------------------
+
+vendor/design-system is a copy of the Spec Kitty design system from
+https://github.com/spec-kitty/design-system, used to style the site. Fonts
+(Newsreader, IBM Plex Sans, IBM Plex Mono) are linked from Google Fonts and are
+not distributed in this repository.
+
+Evidence data
+-------------
+
+The files under evidence/ record model behaviour on SWE-bench tasks. They
+contain text produced by third-party language models and excerpts of the
+open-source repositories that SWE-bench draws its tasks from (patches, test
+output and file contents). That text remains under the licenses of its
+original projects; the MIT License above covers Spec Kitty, Inc.'s own work in
+this repository.

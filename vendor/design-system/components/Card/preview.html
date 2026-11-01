@@ -1,0 +1,12 @@
+<!-- @dsCard group="Containers" height=260 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Card — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var S = window.SpecKitty, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'sk-stack'}, h(S.Card,{eyebrow:'WP02 · spec 014',title:'Offline drafts sync on reconnect',footer:[h(S.Badge,{tone:'accent',key:1},'In review'),h('span',{key:2,style:{flex:1}}),h(S.Button,{key:3,size:'sm',variant:'primary'},'Review')]}, 'Drafts saved without a connection upload in order when the app is back online. Conflicts ask the author, never overwrite.')));
+</script>
+</body>
+</html>

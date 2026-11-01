@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en" data-evidence-base="https://github.com/spec-kitty/swe-bench-trytokenfactory/raw/main/"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For researchers: what you can do with the evidence · Spec Kitty benchmarks</title>
+<meta name="robots" content="noindex,nofollow"><link rel="canonical" href="https://spec-kitty.github.io/swe-bench-trytokenfactory/research.html"><meta property="og:url" content="https://spec-kitty.github.io/swe-bench-trytokenfactory/research.html">
+<meta name="description" content="Spec Kitty with TokenFactory and exe.dev. Single-attempt SWE-bench results, with coverage and evidence.">
+<meta property="og:title" content="For researchers: what you can do with the evidence · Spec Kitty with TokenFactory and exe.dev"><meta property="og:description" content="Spec Kitty with TokenFactory and exe.dev. Single-attempt SWE-bench results, with coverage and evidence."><meta property="og:type" content="website">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="For researchers: what you can do with the evidence · Spec Kitty with TokenFactory and exe.dev"><meta name="twitter:description" content="Spec Kitty with TokenFactory and exe.dev. Single-attempt SWE-bench results, with coverage and evidence.">
+<link rel="icon" href="assets/design-system/spectacles.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/design-system/tokens.css"><link rel="stylesheet" href="assets/design-system/bundle.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="assets/site.css"><script src="assets/theme.js"></script>
+<script src="assets/site.js" defer></script></head><body>
+<a class="skip" href="#main">Skip to results</a><div class="shell"><header>
+<div class="partner-strip" aria-label="Project partners"><a href="https://spec-kitty.ai" target="_blank" rel="noopener"><span class="partner-mark" aria-hidden="true"><img class="mark-day" src="assets/design-system/kitty-mark.svg" width="32" height="32" alt=""><img class="mark-night" src="assets/design-system/kitty-mark-night.svg" width="32" height="32" alt=""></span><span class="product-dot" aria-hidden="true"></span>Spec Kitty</a><span>with</span><a href="https://portal.trytokenfactory.dev/" target="_blank" rel="noopener">TokenFactory</a><span>and</span><a href="https://exe.dev" target="_blank" rel="noopener">exe.dev</a></div>
+<a class="brand" href="index.html">Benchmarks</a>
+<button type="button" id="theme-toggle" class="sk-btn sk-btn-sm sk-btn-quiet">Change theme</button>
+<nav aria-label="Main"><a href="index.html">Leaderboard</a><a href="compare.html">Compare</a><a href="instances.html">Tasks</a><a href="methodology.html">Methodology</a><a href="evidence.html">Evidence</a><a href="research.html" aria-current="page">For researchers</a><a href="about.html">Who made this</a></nav></header><main id="main"><p class="eyebrow">TokenFactory · SWE-bench</p><h1>For researchers: what you can do with the evidence</h1><div class="research-content">
+<p class="lede">Every result on this site comes with the full attempt behind it: the agent's trajectory, the patch it submitted, the grader's logs and a checksum. We publish them so you can check our scores and, more usefully, study how these models differ.</p>
+<section class="glossary" aria-labelledby="three-words"><h2 id="three-words">Three words we use</h2><dl><div><dt>Task</dt><dd>One problem in the benchmark, a real bug report from an open-source project. The benchmark has 2,294 tasks.</dd></div><div><dt>Attempt</dt><dd>One model’s try at one task. 12 models x 2,294 tasks = 27,528 attempts.</dd></div><div><dt>Solved</dt><dd>The project’s own tests pass after the model’s patch.</dd></div></dl></section>
+<p class="notice">Archive coverage: 27,528 / 27,528 attempts have bundles packaged at build time. See <a href="evidence.html">evidence availability and verification</a> before running the examples.</p>
+
+<section aria-labelledby="pack"><h2 id="pack">What is in the pack</h2>
+<ul>
+<li>One file per attempt, 27,528 attempts in all, under <code>evidence/models/&lt;model&gt;/attempts/&lt;repository&gt;/&lt;task&gt;.json.gz</code>. Each holds the full trajectory (every message and tool call), the submitted patch, the exit status, the official grade, the harness evidence (evaluation script, applied patch, report, test output, run log) and proof that the repository history was isolated to the base commit.</li>
+<li>Per model: <code>predictions.jsonl</code> in SWE-bench format, and <code>results.json</code> with one row per task.</li>
+<li>Integrity: a SHA-256 manifest for every file, deterministic packing, and a verify command. 27,673 files are present at build time; compressed files total 3.090288 GB (3,090,287,871 bytes). The packaged indexes cover 27,528 attempts and record these totals: trajectories, 27,528; trajectory messages, 2,665,474.</li>
+</ul>
+<p class="muted">This describes the complete pack; availability above reflects this checkout. Large trajectories can be stored in a sibling compressed file referenced by filename and checksum. Some harness files are absent for empty patches, patch-apply failures or reviewed timeouts. The manifest lists every packed file except itself. Read the <a href="evidence.html">layout and schema</a> for these cases.</p>
+</section>
+
+<section aria-labelledby="paired"><h2 id="paired">Why a paired corpus helps</h2>
+<p>All 12 models attempted the same 2,294 tasks, once each, under one agent, one prompt, one set of budgets and one grader. That makes every comparison paired: you can ask not just which model scores higher but which tasks one solves and another does not.</p>
+<p class="muted">The <a href="methodology.html#incidents">incident notes</a> disclose restarts, request-timeout amendments and the unique request prefix used after the serving fault. These are exceptions to identical scaffolding.</p>
+
+<ul class="paired-facts">
+<li>Tasks no model resolved: <strong>708</strong>.</li>
+<li>Tasks every model resolved: <strong>82</strong>.</li>
+<li>Tasks resolved by exactly one model: <strong>149</strong>.</li>
+</ul>
+<p class="muted">These counts use the Full instance matrix, also used by the front-page accumulating chart.</p>
+</section>
+
+<section aria-labelledby="studies"><h2 id="studies">Things you could study</h2>
+<ol>
+<li><strong>Failure modes.</strong> Group unresolved attempts by how they ended (empty patch, malformed responses, budget, a patch that fails the tests) and read the trajectories behind each group.</li>
+<li><strong>Localization and editing.</strong> Compare which files and commands different models open before they edit, on the same task.</li>
+<li><strong>Verifier and reward-model data.</strong> Outcome-labelled trajectories from 12 policies on identical tasks, with labels from the official harness.</li>
+<li><strong>Regrading and audit.</strong> Re-run the SWE-bench harness from each attempt's patch and evaluation script, and check our grading amendments against the retained originals.</li>
+<li><strong>Serving forensics.</strong> Raw responses are kept, so serving faults show up in the data: leaked special tokens, runaway repetition, requests that never returned.</li>
+<li><strong>Cross-model replay.</strong> Take a trajectory prefix and replay it against another model to see where behaviour diverges.</li>
+</ol>
+</section>
+
+<section aria-labelledby="other-evidence"><h2 id="other-evidence">How others publish evidence</h2>
+<p>Publishing trajectories is common practice for agent benchmarks, and we follow it. What we did not find elsewhere, though we did not survey exhaustively, is one release that pairs many models on the same tasks under a single fixed harness, with every trajectory and grading log verifiable by checksum. If we missed one, tell us.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="How others publish evidence"><table>
+<caption>Checked against each project's own pages on 1 November 2026. Project policies change; follow the links for current terms.</caption>
+<thead><tr><th scope="col">Project</th><th scope="col">What it publishes</th><th scope="col">Source</th></tr></thead>
+<tbody>
+<tr><th scope="row">SWE-bench leaderboard</th><td>Each submission includes predictions, per-task patches, reports and test output, and trajectories; the project says it only accepts leaderboard submissions with reasoning traces, and provides a command to re-grade from the recorded test output.</td><td><a href="https://github.com/SWE-bench/experiments" rel="noopener" target="_blank">SWE-bench experiments</a></td></tr>
+<tr><th scope="row">Terminal-Bench 2.1</th><td>Submissions upload their trial results publicly to Harbor Hub (at least five trials per task), and maintainers review the trajectories before a result is added. Community submissions are currently closed.</td><td><a href="https://github.com/harbor-framework/terminal-bench-2-1" rel="noopener" target="_blank">Terminal-Bench repository</a></td></tr>
+<tr><th scope="row">Epoch AI Benchmarking Hub</th><td>For benchmarks Epoch runs, a per-question record of the prompt, the model's response and the score, viewable in an Inspect log viewer.</td><td><a href="https://epoch.ai/blog/benchmarking-hub-update" rel="noopener" target="_blank">Epoch's publication notes</a></td></tr>
+<tr><th scope="row">Nebius SWE-rebench</th><td>Agent trajectories released as Hugging Face datasets under CC-BY-4.0.</td><td><a href="https://huggingface.co/datasets/nebius/SWE-agent-trajectories" rel="noopener" target="_blank">Nebius trajectory dataset</a></td></tr>
+</tbody></table></div>
+</section>
+
+<section aria-labelledby="findings"><h2 id="findings">What the evidence already showed us</h2>
+<h3>A serving fault</h3>
+<p>The first glm-5.3-flash run failed in most attempts. The saved trajectories showed leaked special tokens and runaway digit strings, and replaying saved prompts reproduced the fault, which disappeared when each request carried a unique token. We restarted the model on that basis. Read the <a href="methodology.html#incidents">serving fault and restart notes</a>.</p>
+<h3>Grading under load</h3>
+<p>Some scikit-learn tasks timed out when many models were graded at once, although the same tests finish in seconds alone. The harness logs made that visible, and we documented a grading amendment for those tasks. Read the <a href="methodology.html#reviewed-timeouts">grading and timeout review notes</a>.</p>
+<h3>Gateway stalls</h3>
+<p>A few attempts ended while waiting for a model response that never arrived. The trajectories show the last completed step, so we could adjudicate them under the published rule instead of guessing. Read the <a href="methodology.html#reviewed-timeouts">published timeout rule</a> and <a href="methodology.html#incidents">gateway incident notes</a>.</p>
+</section>
+
+<section aria-labelledby="start"><h2 id="start">Start here</h2>
+<p>Run these examples from a repository checkout after packing the evidence. The archive sits beside <code>docs/</code>; it is not inside the Pages directory.</p>
+<h3>Verify the pack</h3>
+<pre id="verify-pack"><code>cd evidence &amp;&amp; sha256sum -c MANIFEST.sha256
+# On macOS, use this command inside evidence/:
+shasum -a 256 -c MANIFEST.sha256</code></pre>
+<p>For the stricter option, run <code>python3 tools/pack_evidence.py --source &lt;source tree&gt; --verify</code> from the repository root. It also checks identities, source statuses, indexes and trajectory references.</p>
+<h3>Read one attempt in Python</h3>
+<p>We select the first resolved attempt by model name, then task ID, in alphabetical order at build time. Its path refers to the complete pack; a limited preview may not contain it.</p>
+<pre id="read-attempt"><code>import gzip
+import hashlib
+import json
+from pathlib import Path
+
+root = Path(&quot;evidence&quot;)
+path = Path(&#x27;evidence/models/deepseek-v4.1-flash-1017/attempts/astropy__astropy/astropy__astropy-12907.json.gz&#x27;)
+with gzip.open(path, &quot;rt&quot;, encoding=&quot;utf-8&quot;) as stream:
+    attempt = json.load(stream)
+print(sorted(attempt))
+trajectory = attempt.get(&quot;trajectory&quot;) or {}
+if &quot;file&quot; in trajectory and &quot;sha256&quot; in trajectory:
+    raw = (root / trajectory[&quot;file&quot;]).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != trajectory[&quot;sha256&quot;]:
+        raise ValueError(&quot;Trajectory checksum mismatch&quot;)
+    trajectory = json.loads(gzip.decompress(raw))
+print(&quot;Messages:&quot;, len(trajectory.get(&quot;messages&quot;, [])))
+print(&quot;Status:&quot;, attempt[&quot;status&quot;])
+print(&quot;Exit status:&quot;, (attempt.get(&quot;result&quot;) or {}).get(&quot;exit_status&quot;))
+print(&quot;\n&quot;.join((attempt.get(&quot;prediction&quot;) or {}).get(&quot;model_patch&quot;, &quot;&quot;).splitlines()[:10]))
+</code></pre>
+<h3>Build a solved-by matrix in Python</h3>
+<p>This prints how many tasks each model uniquely solves. It requires all model/task indexes and completed grades so a partial pack cannot turn an absent result into a unique solve.</p>
+<pre id="solved-matrix"><code>import csv
+import json
+from pathlib import Path
+
+rows = {p.parent.name: json.loads(p.read_text(encoding=&quot;utf-8&quot;))
+        for p in sorted(Path(&quot;evidence/models&quot;).glob(&quot;*/results.json&quot;))}
+expected_models = [&#x27;deepseek-v4.1-flash-1017&#x27;, &#x27;deepseek-v4.1-flash-1017-uncensored-fp8&#x27;, &#x27;glm-5.3&#x27;, &#x27;glm-5.3-flash&#x27;, &#x27;glm-5.3-flash-uncensored-fp8&#x27;, &#x27;glm-5.3-uncensored-fp8&#x27;, &#x27;kimi-k3&#x27;, &#x27;kimi-k3-abliterated&#x27;, &#x27;minimax-m3.1-flash&#x27;, &#x27;nemotron-3-super&#x27;, &#x27;nemotron-3-ultra&#x27;, &#x27;nemotron-3.5-lightning&#x27;]
+with Path(&quot;docs/data/results.csv&quot;).open(newline=&quot;&quot;, encoding=&quot;utf-8&quot;) as stream:
+    expected_tasks = {row[&quot;instance_id&quot;] for row in csv.DictReader(stream)}
+if set(rows) != set(expected_models) or any(set(r) != set(expected_tasks) for r in rows.values()):
+    raise ValueError(&quot;Incomplete pack: model/task coverage differs from this release&quot;)
+if any(r[&quot;status&quot;] not in (&quot;resolved&quot;, &quot;unresolved&quot;) for tasks in rows.values() for r in tasks.values()):
+    raise ValueError(&quot;Provisional grades: unique-solve counts can change&quot;)
+models = sorted(rows)
+solved_by = {task: [rows[m][task][&quot;status&quot;] == &quot;resolved&quot; for m in models]
+             for task in sorted(expected_tasks)}
+for column, model in enumerate(models):
+    unique = sum(values[column] and sum(values) == 1 for values in solved_by.values())
+    print(model, unique)
+</code></pre>
+<h3>How to cite</h3>
+<pre id="citation"><code>@misc{spec_kitty_swe_bench,
+  title = {Testing the latest open-weight models against SWE-bench},
+  author = {{Spec Kitty} and {TokenFactory} and {exe.dev}},
+  year = {2026},
+  url = {https://github.com/spec-kitty/swe-bench-trytokenfactory}
+}</code></pre>
+<p class="muted">Licence: MIT, Copyright (c) 2026 Spec Kitty, Inc. See <a href="https://github.com/spec-kitty/swe-bench-trytokenfactory/blob/main/LICENSE">LICENSE</a> and <a href="https://github.com/spec-kitty/swe-bench-trytokenfactory/blob/main/NOTICE">NOTICE</a>.</p>
+</section>
+</div>
+</main>
+<footer><div class="partner-footer"><section><h2><a href="https://spec-kitty.ai" target="_blank" rel="noopener">Spec Kitty</a></h2><p>We ran the benchmark and graded predictions with the official SWE-bench harness. We publish results and trajectories so you can inspect the work behind each score.</p></section><section><h2><a href="https://portal.trytokenfactory.dev/" target="_blank" rel="noopener">TokenFactory</a></h2><p>TokenFactory gave us one OpenAI-compatible endpoint for all 12 models, with tool calling across every route. Use the portal link above to get access.</p></section><section><h2><a href="https://exe.dev" target="_blank" rel="noopener">exe.dev</a></h2><p>exe.dev gave us the worker VMs, in-place resizing and the integration that kept our gateway credential off every worker.</p></section></div><p>A joint project. Every score here is computed from the public evidence in this repository.</p><p>MIT licensed. <a href="https://github.com/spec-kitty/swe-bench-trytokenfactory">Source and evidence on GitHub.</a></p><p>Generated for source snapshot <time datetime="2026-11-01T11:12:16+00:00">2026-11-01T11:12:16+00:00</time>. Source commit <code>a95282a13691940d8f3e0910c74fcc803db525ac</code>.</p>
+<p>We share the evidence behind these scores so you can inspect this scaffold, gateway and protocol. <a href="data/results.csv" download>Download results CSV</a> · <a href="data/build-info.json">Build provenance</a> · <a href="https://github.com/spec-kitty/swe-bench-trytokenfactory/blob/main/README.md" data-repo-file="README.md">Source repository</a></p></footer></div></body></html>

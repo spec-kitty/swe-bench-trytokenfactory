@@ -1849,6 +1849,9 @@ def build(source=DEFAULT_SOURCE, out=ROOT/'docs', limit=None, generated_at=None,
     site.page('404.html', 'This page is missing', '<p>The link may be out of date. <a href="index.html">Return to the leaderboard</a> or <a href="instances.html">find a task</a>.</p>')
     site.write('.nojekyll', '')
     site.write('robots.txt', 'User-agent: *\n' + ('Disallow' if staging else 'Allow') + ': /\n')
+    host = urlsplit(site.config['site_url']).hostname or ''
+    if publish and host and not host.endswith('.github.io'):
+        site.write('CNAME', host + '\n')  # GitHub Pages custom domain
     site.json('data/build-info.json', {'generated_for_snapshot': generated, 'source_commit': commit,
               'source_hashes': fingerprints, 'trajectory_limit_per_model': limit,
               'publish': publish, 'staging': staging,

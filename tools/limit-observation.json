@@ -1,0 +1,9 @@
+{
+  "provenance": "Sample observation supplied by the run authors for Job O; not independently recomputed by the site builder. Cause not confirmed with the gateway team.",
+  "solved_attempts_per_model": 12,
+  "ratios": [
+    {"models": "MiniMax and GLM-5.3 uncensored", "ratio": 1.7},
+    {"models": "Nemotron-3-super", "ratio": 1.5},
+    {"models": "DeepSeek and Kimi", "ratio": 1.1}
+  ]
+}

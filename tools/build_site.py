@@ -31,6 +31,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE = ROOT.parent
 STATUSES = ('resolved', 'unresolved', 'ungraded', 'missing')
 CONFIDENCE = 0.95
+LIMIT_CONSTRAINED_THRESHOLD = 0.20
+LIMIT_EXITS = {"ContextBudgetExceeded": "context_cap", "TimeExceeded": "time_limit", "OuterProcessTimeout": "time_limit"}
 REQUIRED = [
     'configs/experiment.json', 'configs/protocol.json', 'configs/request-nonce.json',
     'PUBLICATION.md', 'STATUS.md', 'README.md',
@@ -359,6 +361,70 @@ def load_data(source):
             raise ValueError('Repository report disagrees')
     return dict(experiment=experiment, models=models, tasks=tasks, task_titles=task_titles, subsets=subsets,
                 statuses=statuses, boards=boards, repos=repos, repository_counts=repository_counts)
+
+
+def limit_counts(records, ids):
+    """Use all task slots, including pending/missing; never the graded denominator."""
+    ids = set(ids)
+    counts = dict(context_cap=0, time_limit=0)
+    observed = 0
+    for instance in ids:
+        record = records.get(instance, {})
+        observed += bool(record.get('exit_status'))
+        category = LIMIT_EXITS.get(record.get('exit_status'))
+        if record.get('grade_reason') == 'empty_patch' and category:
+            counts[category] += 1
+    total = len(ids)
+    cutoff = sum(counts.values())
+    share = cutoff / total if total else None
+    return dict(total=total, observed=observed, count=cutoff, share=share,
+                **counts, context_cap_share=counts['context_cap']/total if total else None,
+                time_limit_share=counts['time_limit']/total if total else None,
+                provisional=observed < total,
+                limit_constrained=share is not None and share >= LIMIT_CONSTRAINED_THRESHOLD)
+
+
+def limits_data(data, metrics):
+    boards = {name: {m: limit_counts(metrics[m], ids) for m in data['models']}
+              for name, ids in data['subsets'].items()}
+    for name, board in boards.items():
+        for m, row in board.items():
+            row['provisional'] |= not data['boards'][name][m]['complete']
+    repositories = {m: {repo: limit_counts(metrics[m], [i for i, r in data['tasks'].items() if r == repo])
+                         for repo in data['repos']} for m in data['models']}
+    for m, repos in repositories.items():
+        for repo, row in repos.items():
+            row['provisional'] |= not data['repository_counts'][m][repo]['complete']
+    reasons = Counter(r.get('exit_status') or 'Unknown' for records in metrics.values()
+                      for r in records.values() if r.get('grade_reason') == 'empty_patch')
+    empty = sum(reasons.values())
+    return dict(threshold=LIMIT_CONSTRAINED_THRESHOLD, subsets=boards,
+                repositories=repositories, empty_total=empty,
+                empty_exit_reasons={k: dict(count=v, share=v/empty) for k, v in sorted(reasons.items())},
+                provenance='Active runs/v2 result.json exit_status and grade.json reason; excludes superseded and v1. '
+                'Cut off means empty_patch AND ContextBudgetExceeded, TimeExceeded or OuterProcessTimeout. '
+                'Time limit combines the latter two. Shares divide by all tasks in each dataset subset, not graded attempts. '
+                'Verified uses the same generation attempt, independently of supplemental grading. '
+                'Trajectory sampling does not limit these counts; incomplete coverage is provisional.')
+
+
+def limit_text(row):
+    return (('Provisional: ' if row['provisional'] else '') + percent(row['share']) +
+            f' ({number(row["count"])} / {number(row["total"])})' +
+            (' · limit-constrained' if row['limit_constrained'] else ''))
+
+
+def limit_legend():
+    return (f'<p>Limit-constrained: Cut off on {LIMIT_CONSTRAINED_THRESHOLD:.0%} or more of tasks by our limits, '
+            'so this score understates what the model can do.</p>')
+
+
+def limits_table(data, models, subset='Full'):
+    return table(f'{subset} · solved inside our limits',
+                 ['Model', 'Solved', 'Cut off by limits', 'Context cap', 'Time limit'],
+                 [cells([E(m), percent(data['boards'][subset][m]['score']),
+                         limit_text(r), percent(r['context_cap_share']), percent(r['time_limit_share'])])
+                  for m in models for r in [data['limits']['subsets'][subset][m]]])
 
 
 def trajectory_metrics(data):
@@ -855,12 +921,13 @@ def chart_data(data, metrics, adjudications=(), limit=None):
     def pct(value):
         return None if value is None else 100 * value
 
+    cutoffs = limits_data(data, metrics)
     leaderboards = {}
     for name, board in data['boards'].items():
         ordered = sorted(board, key=lambda m: (-(board[m]['score'] if board[m]['score'] is not None else -1), m))
         rows = [dict(model=m, rank=1+sum(c['score'] is not None and board[m]['score'] is not None
                                         and c['score'] > board[m]['score'] for c in board.values()),
-                     resolved=board[m]['resolved'], graded=board[m]['graded'], total=board[m]['total'],
+                     limits=cutoffs['subsets'][name][m], resolved=board[m]['resolved'], graded=board[m]['graded'], total=board[m]['total'],
                      score=pct(board[m]['score']), coverage=pct(board[m]['coverage']),
                      interval=[pct(v) for v in board[m]['wilson']] if board[m]['wilson'] else None)
                 for m in ordered]
@@ -871,7 +938,7 @@ def chart_data(data, metrics, adjudications=(), limit=None):
         else:
             subject = ', '.join(leaders)
             verb = 'leads' if len(leaders) == 1 else 'share the lead'
-            title = f'{subject} {verb}, resolving {rows[0]["score"]:.2f}% of the {number(rows[0]["graded"])} {name} tasks' + (' graded so far' if provisional else '')
+            title = f'{subject} {verb} inside our limits, resolving {rows[0]["score"]:.2f}% of the {number(rows[0]["graded"])} {name} tasks' + (' graded so far' if provisional else '')
         leaderboards[name] = dict(rows=rows, title=('Provisional: ' if provisional else '')+title,
                                  attempts=sum(r['graded'] for r in rows), provisional=provisional)
 
@@ -1162,24 +1229,24 @@ def chart_sections(site, metrics):
                  f'aria-controls="chart-panel-{name}" aria-selected="{str(idx == 0).lower()}" tabindex="{0 if idx == 0 else -1}" '
                  f'data-chart-subset="{name}">{name}</button>')
         values = [[r['rank'] if r['score'] is not None else '—', r['model'],
-                   percent(r['score']/100) if r['score'] is not None else 'Unavailable',
+                   percent(r['score']/100) if r['score'] is not None else 'Unavailable', limit_text(r['limits']),
                    '–'.join(percent(v/100) for v in r['interval']) if r['interval'] else 'Unavailable',
                    f'{number(r["resolved"])} / {number(r["graded"])}', percent(r['coverage']/100)] for r in board['rows']]
         board_tables += (f'<div id="chart-panel-{name}" role="tabpanel" aria-labelledby="chart-tab-{name}">'
-                         +data_table(name+' scores', ['Rank', 'Model', 'Resolved', 'Wilson interval', 'Resolved / graded', 'Coverage'], values)+'</div>')
+                         +data_table(name+' scores', ['Rank', 'Model', 'Resolved', 'Cut off by limits', 'Wilson interval', 'Resolved / graded', 'Coverage'], values)+'</div>')
     tabs += '</div>'
     body = ('<div class="chart-dashboard" data-charts="data/charts.json">'
             '<p class="chart-fallback">Charts need JavaScript. You can read every plotted value in the open tables below.</p>')
     board = charts['leaderboards']['Full']
     body += card('leaderboard', 'Resolved tasks', board['title'],
-                 f'The bars show the share of tasks each model solved among its graded attempts. The lines show a {CONFIDENCE*100:g}% confidence interval (Wilson): a range describing uncertainty from the choice of tasks, not repeated attempts. '+charts['family_note'],
-                 board_tables, 'summary.json and subsets.json', board['attempts'], tabs)
+                 f'The bars show what each model solved inside our limits, among its graded attempts. The lines show a {CONFIDENCE*100:g}% confidence interval (Wilson): a range describing uncertainty from the choice of tasks, not repeated attempts. '+charts['family_note'],
+                 limit_legend()+board_tables, 'summary.json and subsets.json', board['attempts'], tabs)
     o = charts['outcomes']
     body += card('outcomes', 'Attempt outcomes', o['title'],
-                 o['caption'],
+                 o['caption']+' See the methodology section on limits and their effects.',
                  data_table('Full attempt outcomes · counts and shares', ['Model']+[c['label'] for c in o['categories']]+['Total'],
                             [[r['model']]+[f'{number(r["counts"][c["key"]])} ({percent(r["percentages"][c["key"]]/100)})' for c in o['categories']]+[number(r['total'])] for r in o['rows']]),
-                 'instances.csv, grade reasons and timeout-adjudications.json', o['attempts'], '<p><a href="methodology.html#reviewed-timeouts">How we count timeouts</a></p>')
+                 'instances.csv, grade reasons and timeout-adjudications.json', o['attempts'], '<p><a href="methodology.html#limits-effects">Limits and their effects</a> · <a href="methodology.html#reviewed-timeouts">How we count timeouts</a></p>')
     h = charts['difficulty']
     examples = '<div class="difficulty-examples">'
     for example in h['examples']:
@@ -1268,17 +1335,17 @@ def build_leaderboard(site, metrics):
             submitted = sum(r['exit_status'] == 'Submitted' for r in known)
             med = distribution(r.get('usage', {}).get('steps') for r in selected.values())
             submit = percent(submitted/len(known)) if known else 'Unavailable'
-            fields = [str(rank), f'<a href="models/{slug(m)}.html">{E(m)}</a>', score_bar(c),
+            fields = [str(rank), f'<a href="models/{slug(m)}.html">{E(m)}</a>', score_bar(c), limit_text(d['limits']['subsets'][name][m]),
                       f'{number(c["resolved"])} / {number(c["graded"])}', percent(c['coverage']),
                       f'{submit}<small>{number(len(known))} outcomes observed</small>',
                       f'{number(med["median"])}<small>{number(med["n"])} trajectories</small>', badge(c['complete'])]
-            keys = [rank if isinstance(rank, int) else -1, m, c['score'] if c['score'] is not None else -1,
+            keys = [rank if isinstance(rank, int) else -1, m, c['score'] if c['score'] is not None else -1, d['limits']['subsets'][name][m]['share'],
                     c['resolved'], c['coverage'], submitted/len(known) if known else -1,
                     med['median'] if med['median'] is not None else -1, int(c['complete'])]
             rows.append('<tr>'+''.join(f'<{"th scope="+chr(34)+"row"+chr(34) if j == 1 else "td"} data-sort="{E(keys[j])}">{v}</{"th" if j == 1 else "td"}>' for j, v in enumerate(fields))+'</tr>')
         body += f'<section role="tabpanel" id="panel-{name}" aria-labelledby="tab-{name}"{ " hidden" if idx else ""}>'
-        body += table(f'{name} · resolved / graded; interval reflects task sampling only',
-                      ['Rank', 'Model', f'Resolved · Wilson {CONFIDENCE*100:g}% interval', 'Resolved / graded',
+        body += table(f'{name} · solved inside our limits; resolved / graded; interval reflects task sampling only',
+                      ['Rank', 'Model', f'Resolved · Wilson {CONFIDENCE*100:g}% interval', 'Cut off by limits', 'Resolved / graded',
                        'Coverage', 'Submit rate', 'Median steps', 'Status'], rows, True) + '</section>'
     body += '<p class="muted">Ranks follow the displayed score; ties share rank. Submit rate is Submitted exits / observed generation outcomes, including empty submissions. Steps are recorded model API calls. Missing usage is excluded, never counted as zero. Intervals do not capture gateway, scaffold or repeated-run variability.</p>'
     body += '<aside class="sk-card thanks"><h2 class="sk-card-title">Thanks</h2><p>We at Spec Kitty could run the same agent across the model routes because Mirantis TokenFactory gave us a shared API. exe.dev gave us machines we could resize and a way to keep the gateway key off every worker. Thank you to both teams for making this run possible.</p><p><a href="about.html">Who made this</a> · <a href="methodology.html#infrastructure">How the infrastructure worked</a> · <a href="research.html">For researchers</a></p></aside>'
@@ -1325,16 +1392,17 @@ def build_models(site, metrics):
         adjudicated = sum(t.get('original_queue', {}).get('model', t.get('model')) == model for t in timeouts)
         reviewed = sum(t['model'] == model for t in reviews)
         empty = sum(r['grade_reason'] == 'empty_patch' for r in records.values())
-        body = f'<p class="headline-score">{percent(c["score"])} {badge(c["complete"])}</p><p>{number(c["resolved"])} tasks solved. {number(c["graded"])} of {number(c["total"])} Full attempts graded ({percent(c["coverage"])}).</p>'
+        body = f'<p class="headline-score">{percent(c["score"])} {badge(c["complete"])}</p><p>{number(c["resolved"])} tasks solved inside our limits. {number(c["graded"])} of {number(c["total"])} Full attempts graded ({percent(c["coverage"])}).</p>'
         body += f'<div data-model-palette="{E(model)}" data-model-list="{E(json.dumps(site.data["models"]))}">'+score_bar(c)+'</div>'
+        body += limits_table(d, [model])+limit_legend()
         body += '<h2>Outcome mix</h2><p>Report statuses partition the Full set. Empty patches and reviewed timeouts overlap unresolved outcomes; they are not extra attempts. Incident reruns are not an outcome category.</p>'
         rows = [cells([E(s.capitalize()), number(c[s])]) for s in STATUSES]
         rows += [cells(['Empty patches (grade reason)', number(empty)]), cells(['Adjudicated outer timeouts', number(adjudicated)]),
                  cells(['Reviewed test timeouts', number(reviewed)]), cells(['Outage reruns', 'Unavailable: no active-attempt rerun manifest in the supplied inputs'])]
         body += table('Full outcomes and overlapping evidence annotations', ['Outcome', 'Count'], rows)
         body += '<h2>By repository</h2>'
-        body += table('Full tasks by repository', ['Repository', 'Resolved / graded', 'Resolved', 'Coverage'],
-                      [cells([E(repo), f'{number(rc["resolved"])} / {number(rc["graded"])}', percent(rc['score']), percent(rc['coverage'])])
+        body += table('Full tasks by repository', ['Repository', 'Resolved / graded', 'Resolved', 'Cut off by limits', 'Coverage'],
+                      [cells([E(repo), f'{number(rc["resolved"])} / {number(rc["graded"])}', percent(rc['score']), limit_text(d['limits']['repositories'][model][repo]), percent(rc['coverage'])])
                        for repo, rc in d['repository_counts'][model].items()])
         body += '<h2>Tokens and steps</h2>'
         trajectory_count = sum('usage' in r for r in records.values())
@@ -1381,7 +1449,8 @@ def build_compare(site):
             only_a = sum(d['statuses'][a][i] == 'resolved' and d['statuses'][b][i] != 'resolved' for i in shared)
             only_b = sum(d['statuses'][b][i] == 'resolved' and d['statuses'][a][i] != 'resolved' for i in shared)
             pairs[a+'|'+b] = dict(a=a, b=b, paired=len(shared), only_a=only_a, only_b=only_b, p=mcnemar_exact(only_a, only_b))
-    body = '<p class="lede">Compare where models solve the same tasks, and where their results differ.</p><h2>Resolved by repository</h2><p>Cells show resolved / graded as a percentage. Each cell includes its graded denominator. Pending attempts are excluded. Ink density follows the percentage; text carries the value.</p>'
+    body = '<p class="lede">Compare which tasks models solved inside our limits, and where their results differ.</p><h2>Resolved by repository</h2><p>Cells show resolved / graded as a percentage. Each cell includes its graded denominator. Pending attempts are excluded. Ink density follows the percentage; text carries the value.</p>'
+    body = '<p>Scores show what each model solved inside our limits.</p>'+limits_table(d, models)+limit_legend()+body
     width = 390+len(d['repos'])*105
     height = 210+len(models)*44
     svg = f'<svg class="heatmap" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="Resolved percentages by model and repository; full values follow in the table"><rect width="{width}" height="{height}" fill="var(--surface)"/>'
@@ -1394,11 +1463,13 @@ def build_compare(site):
             c = d['repository_counts'][model][repo]
             opacity = .04+(c['score'] or 0)*.3
             x = 390+j*105
-            svg += f'<g><title>{E(model)} · {E(repo)}: {percent(c["score"])}; {c["graded"]}/{c["total"]} graded</title><rect x="{x}" y="{y}" width="100" height="40" fill="var(--ink)" opacity="{opacity:.3f}"/><text x="{x+50}" y="{y+25}" text-anchor="middle" style="fill:var(--{ "surface" if opacity > .5 else "ink"})">{percent(c["score"])}</text></g>'
+            svg += f'<g><title>{E(model)} · {E(repo)}: {percent(c["score"])}; {c["graded"]}/{c["total"]} graded; cut off by limits: {E(limit_text(d["limits"]["repositories"][model][repo]))}</title><rect x="{x}" y="{y}" width="100" height="40" fill="var(--ink)" opacity="{opacity:.3f}"/><text x="{x+50}" y="{y+25}" text-anchor="middle" style="fill:var(--{ "surface" if opacity > .5 else "ink"})">{percent(c["score"])}</text></g>'
     svg += '</svg>'
     body += '<div class="table-scroll" tabindex="0" role="region" aria-label="Repository heatmap">'+svg+'</div><details><summary>Read repository values and coverage</summary>'
-    body += table('Heatmap values: resolved / graded; coverage', ['Model', *d['repos']],
-                  [cells([E(m), *[f'{percent(c["score"])}<small>{c["resolved"]}/{c["graded"]}; {percent(c["coverage"])} coverage</small>' for c in d['repository_counts'][m].values()]]) for m in models])+'</details>'
+    body += table('Heatmap values: resolved / graded; coverage', ['Model', *[heading for repo in d['repos'] for heading in (repo, 'Cut off by limits')]],
+                  [cells([E(m), *[value for repo, c in d['repository_counts'][m].items()
+                                 for value in (f'{percent(c["score"])}<small>{c["resolved"]}/{c["graded"]}; {percent(c["coverage"])} coverage</small>',
+                                               limit_text(d['limits']['repositories'][m][repo]))]]) for m in models])+'</details>'
     body += '<h2>Paired differences</h2><p>Exact two-sided McNemar tests use only tasks with graded attempts from both models. The null gives each discordant direction equal probability. We double the smaller binomial tail and cap it at unity; no continuity correction or multiple-comparison adjustment. These exploratory tests do not estimate repeat-run reliability. Pending attempts are not failures.</p>'
     rows = []
     for a in models:
@@ -1489,6 +1560,33 @@ def infrastructure_section(site):
     return (ROOT/'tools/site_assets/infrastructure.html').read_text().format_map(values)
 
 
+def limits_section(site, protocol):
+    d = site.data
+    limits = d['limits']
+    observation = read_json(ROOT/'tools/limit-observation.json')
+    body = '<section id="limits-effects"><h2>Limits, and what they did to the results</h2>'
+    body += (f'<p>We capped context at {number(protocol["context_proxy_limit"])} tokens, counted with '
+             f'<code>{E(protocol["context_proxy_tokenizer"])}</code>, including each model’s earlier reasoning text. '
+             f'We also set a {number(protocol["wall_time_seconds"]/3600)}-hour wall clock, checked between calls, '
+             f'and a {number(protocol["outer_process_timeout_seconds"])}-second outer process limit.</p>')
+    if any(r['provisional'] for r in limits['subsets']['Full'].values()):
+        body += '<p>Provisional: coverage is incomplete. Empty-patch counts describe the evidence available so far.</p>'
+    body += f'<p>{number(limits["empty_total"])} attempts ended with an empty patch. Their recorded exit reasons were:</p>'
+    body += table('Empty patches · shares of all empty attempts', ['Exit reason', 'Count', 'Share'],
+                  [cells([E(k), number(v['count']), percent(v['share'])]) for k, v in limits['empty_exit_reasons'].items()])
+    body += '<p>We count an attempt as cut off only when its grade reason is an empty patch and it ended on the context cap or a time limit. Time limit includes the wall clock and outer process limit. Shares below use all tasks, including any pending tasks. They describe generation, so supplemental Verified grading does not change them.</p>'
+    for subset in d['subsets']:
+        body += limits_table(d, d['models'], subset)
+    body += limit_legend()
+    body += (f'<p>In a sample of {number(observation["solved_attempts_per_model"])} solved attempts per model, our counter read higher than the gateway’s prompt counts: ' +
+             '; '.join(f'about {number(r["ratio"])} times for {E(r["models"])}' for r in observation['ratios']) +
+             '. Removing reasoning text from our count brought the ratio near unity. This is an author-supplied sample observation (<a href="data/limit-observation.json">source note</a>), '
+             'not a measurement of every attempt. We have not confirmed the cause with the gateway team. '
+             'Some models may therefore have been stopped much earlier than the nominal context cap suggests.</p>')
+    body += '<p>These scores correctly report what each model solved inside our limits. They are not a clean ranking of ability for models frequently cut off. Labs publish their own results under much larger limits; our research into those settings is not finished, so we do not quote their numbers here.</p><p>We plan to rerun cut-off attempts under relaxed limits. That rerun has not happened; we will publish it separately and label it clearly.</p><p><a href="data/limits.json">Download counts, shares and provenance</a></p></section>'
+    return body
+
+
 def build_methodology(site, metrics):
     s, d = site.source, site.data
     protocol = read_json(s/'configs/protocol.json')
@@ -1510,6 +1608,7 @@ def build_methodology(site, metrics):
     body += table('Frozen protocol budgets', ['Setting', 'Value'], [cells([label, number(protocol[key])]) for label, key in limits])
     body += f'<p>Context proxy: {E(protocol["context_proxy_tokenizer"])}. Scaffold: {E(protocol["scaffold"])}. Container network: {E(protocol["container_network"])}; memory: {E(protocol["container_memory"])}. The wall limit is checked between calls, so a slow call can extend elapsed time up to the outer process limit.</p>'
     body += f'<p>History isolation: {E(protocol["repository_history"])}. A fresh object store exposes only the dataset base commit; ancestor and future commits and remotes are unavailable. Each prediction needs matching isolation evidence.</p>'
+    body += limits_section(site, protocol)
     body += infrastructure_section(site)
     body += f'<h2>A shared gateway and an inspectable result</h2><p>Mirantis TokenFactory gave us one OpenAI-compatible endpoint and one API shape for {number(len(d["models"]))} models, with tool calling across every route. We could use the same request machinery throughout the run. When we found serving issues, we reported them with evidence so the gateway team could act. Thank you for giving us a shared way to reach these models. You can get access through the Mirantis TokenFactory portal linked in the footer.</p><p>We at Spec Kitty ran the benchmark and graded predictions with the official SWE-bench harness. We publish results and trajectories alongside the protocol and incident notes so you can trace a score back to an attempt. The evidence page shows what has been packaged, and grading coverage stays visible with the scores.</p>'
     body += '<h2>Outcome definitions</h2><dl><dt>Resolved</dt><dd>Completed grading with a resolved result, prediction identity and required harness evidence validated by the source report.</dd><dt>Unresolved</dt><dd>Completed grading without resolution, including validated empty patches, patch-apply failures and explicitly reviewed patch-induced test timeouts.</dd><dt>Ungraded</dt><dd>A prediction without a completed accepted grade, or a grade whose required evidence or current amendment is missing. A test timeout remains ungraded until reviewed.</dd><dt>Missing</dt><dd>No prediction and no grade in the collected report. This can include pending, paused or uncollected work; it is not a failure result.</dd></dl>'
@@ -1728,6 +1827,9 @@ def build(source=DEFAULT_SOURCE, out=ROOT/'docs', limit=None, generated_at=None,
     commit = source_commit(source)
     metrics = collect_metrics(snapshot, data, ROOT/'.cache/build-site/metrics.sqlite3', limit)
     site = Site(snapshot, out, data, generated, commit, limit, publish=publish, staging=staging)
+    data['limits'] = limits_data(data, metrics)
+    site.json('data/limits.json', data['limits'])
+    site.json('data/limit-observation.json', read_json(ROOT/'tools/limit-observation.json'))
     site.assets()
     build_leaderboard(site, metrics)
     build_models(site, metrics)
@@ -1751,7 +1853,7 @@ def build(source=DEFAULT_SOURCE, out=ROOT/'docs', limit=None, generated_at=None,
               'source_hashes': fingerprints, 'trajectory_limit_per_model': limit,
               'publish': publish, 'staging': staging,
               'publication_hashes': {p: digest(ROOT/p) for p in (
-                  'tools/partners.json', 'tools/projects.json', 'tools/build_site.py', 'tools/site_assets/infrastructure.html',
+                  'tools/partners.json', 'tools/projects.json', 'tools/limit-observation.json', 'tools/build_site.py', 'tools/site_assets/infrastructure.html',
                   'tools/site_assets/research.html',
                   'tools/pack_evidence.py', 'tools/site_assets/charts.js', 'tools/site_assets/site.css',
                   'tools/site_assets/site.js', 'tools/site_assets/theme.js', 'vendor/echarts/VENDORED.json')},

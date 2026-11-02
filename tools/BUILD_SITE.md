@@ -114,3 +114,14 @@ The page reports actual browser checks for horizontal scroll, control decoration
 and bounds, model-key layout, label separation and keyboard cards. This review
 complements the automated SVG and pure-geometry tests; generating it does not
 mean its browser checks have run.
+
+Limit effects are exported to `docs/data/limits.json` for Full, Verified and Lite.
+An attempt counts only when `grade_reason == empty_patch` and its exit is
+`ContextBudgetExceeded`, `TimeExceeded` or `OuterProcessTimeout`. Time combines
+the latter two; shares use all subset tasks, including pending/missing tasks.
+`LIMIT_CONSTRAINED_THRESHOLD` controls the inclusive marker threshold. All active
+attempts are read even with `--limit`; supplemental Verified grading does not
+change generation cut-offs. Incomplete coverage is labelled provisional.
+The authors' separate sample observation is recorded in `tools/limit-observation.json`,
+exported with provenance and hashed in build metadata; it is not recomputed from
+sampled usage. The methodology explicitly describes the rerun as planned.

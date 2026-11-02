@@ -165,7 +165,7 @@
     option.yAxis = modelAxis(t, rows.map(r => r.model), compact, true);
     option.tooltip.formatter = p => {
       const r = rows[p.dataIndex];
-      return `${modelTitle(r.model)}<br><strong>${pct(r.score)}</strong> resolved · ${fmt(r.resolved)} / ${fmt(r.graded)} graded<br>` +
+      return `${modelTitle(r.model)}${r.limits?.limit_constrained ? " · limit-constrained" : ""}<br>Cut off by limits: ${pct((r.limits?.share || 0)*100)} (${fmt(r.limits?.count || 0)} / ${fmt(r.total)})<br><strong>${pct(r.score)}</strong> resolved · ${fmt(r.resolved)} / ${fmt(r.graded)} graded<br>` +
         `${fmt(data.confidence * 100)}% Wilson interval: ${r.interval ? r.interval.map(pct).join('–') : 'Unavailable'}<br>Coverage: ${pct(r.coverage)}`;
     };
     option.series = [{id: 'scores', type: 'bar', barMaxWidth: 22, animationDelay: barDelay,
@@ -443,7 +443,7 @@
     return counts;
   }
   function officialPointText(r, ours) {
-    return ours ? `${r.model} · ${pct(r.score)} resolved · ${fmt(data.confidence*100)}% Wilson interval ${r.interval.map(pct).join('–')}` :
+    return ours ? `${r.model}${r.limits?.limit_constrained ? " · limit-constrained" : ""} · ${pct(r.score)} resolved inside our limits · ${fmt(data.confidence*100)}% Wilson interval ${r.interval.map(pct).join('–')}` :
       `${r.name} · Agent: ${r.agent} · Model: ${r.model_display} · ${pct(r.resolved)} resolved · Date: ${r.date} · Attempts: ${r.attempts}`;
   }
   function officialKey(t) {

@@ -283,7 +283,7 @@ class ReportTests(unittest.TestCase):
                 shutil.copyfile(ROOT/'vendor/design-system'/relative, dest)
             shutil.copytree(ROOT/'tools/site_assets', publish/'tools/site_assets')
             shutil.copytree(ROOT/'vendor/echarts', publish/'vendor/echarts')
-            for name in ('partners.json', 'projects.json', 'build_site.py', 'pack_evidence.py'):
+            for name in ('partners.json', 'projects.json', 'limit-observation.json', 'build_site.py', 'pack_evidence.py'):
                 shutil.copyfile(ROOT/'tools'/name, publish/'tools'/name)
             with patch.object(b, 'ROOT', publish), patch.object(b, 'source_commit', return_value='d'*40), contextlib.redirect_stdout(io.StringIO()):
                 b.build(source, publish/'docs')

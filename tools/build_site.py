@@ -98,7 +98,7 @@ def public_data(value):
 def load_partners(path, model_count):
     config = read_json(path)
     partners = config['partners']
-    if [p['name'] for p in partners] != ['Spec Kitty', 'TokenFactory', 'exe.dev']:
+    if [p['name'] for p in partners] != ['Spec Kitty', 'Mirantis TokenFactory', 'exe.dev']:
         raise ValueError('Partner names or order changed')
     result = []
     for partner in partners:
@@ -678,7 +678,7 @@ class Site:
 <div class="partner-strip" aria-label="Project partners">{strip}</div>
 <a class="brand" href="{prefix}index.html">Benchmarks</a>
 <button type="button" id="theme-toggle" class="sk-btn sk-btn-sm sk-btn-quiet">Change theme</button>
-<nav aria-label="Main">{links}</nav></header><main id="main"><p class="eyebrow">TokenFactory · SWE-bench</p><h1>{E(title)}</h1>{body}</main>
+<nav aria-label="Main">{links}</nav></header><main id="main"><p class="eyebrow">Mirantis TokenFactory · SWE-bench</p><h1>{E(title)}</h1>{body}</main>
 <footer><div class="partner-footer">{footer}</div><p>{JOINT_PROJECT}</p>{licence}<p>Generated for source snapshot <time datetime="{E(self.generated)}">{E(self.generated)}</time>. Source commit <code>{E(self.commit)}</code>.</p>
 <p>We share the evidence behind these scores so you can inspect this scaffold, gateway and protocol. <a href="{prefix}data/results.csv" download>Download results CSV</a> · <a href="{prefix}data/build-info.json">Build provenance</a> · {source_link}</p></footer></div></body></html>''')
 
@@ -1281,7 +1281,7 @@ def build_leaderboard(site, metrics):
                       ['Rank', 'Model', f'Resolved · Wilson {CONFIDENCE*100:g}% interval', 'Resolved / graded',
                        'Coverage', 'Submit rate', 'Median steps', 'Status'], rows, True) + '</section>'
     body += '<p class="muted">Ranks follow the displayed score; ties share rank. Submit rate is Submitted exits / observed generation outcomes, including empty submissions. Steps are recorded model API calls. Missing usage is excluded, never counted as zero. Intervals do not capture gateway, scaffold or repeated-run variability.</p>'
-    body += '<aside class="sk-card thanks"><h2 class="sk-card-title">Thanks</h2><p>We at Spec Kitty could run the same agent across the model routes because TokenFactory gave us a shared API. exe.dev gave us machines we could resize and a way to keep the gateway key off every worker. Thank you to both teams for making this run possible.</p><p><a href="about.html">Who made this</a> · <a href="methodology.html#infrastructure">How the infrastructure worked</a> · <a href="research.html">For researchers</a></p></aside>'
+    body += '<aside class="sk-card thanks"><h2 class="sk-card-title">Thanks</h2><p>We at Spec Kitty could run the same agent across the model routes because Mirantis TokenFactory gave us a shared API. exe.dev gave us machines we could resize and a way to keep the gateway key off every worker. Thank you to both teams for making this run possible.</p><p><a href="about.html">Who made this</a> · <a href="methodology.html#infrastructure">How the infrastructure worked</a> · <a href="research.html">For researchers</a></p></aside>'
     comparison = read_json(site.source/'artifacts/official-comparison.json')
     body += official_section(site.official)
     matches = sum(bool(r.get('matches')) for r in comparison['models'] if r['model'] in d['models'])
@@ -1449,13 +1449,13 @@ def build_instances(site):
 def build_about(site):
     paragraphs = [
         'We chose the protocol, operated the run and graded predictions with the official SWE-bench harness. We publish the result matrix and trajectories so you can follow a score back to the work that produced it. The evidence page shows what is packaged, and grading coverage shows how much has been graded.',
-        f'TokenFactory gave us one OpenAI-compatible endpoint and one API shape for {number(len(site.data["models"]))} models, with tool calling across every route. We could keep the same request machinery as we moved between models. When we found serving issues, we reported them with evidence so the gateway team could act. You can get access through the TokenFactory portal linked in the footer.',
+        f'Mirantis TokenFactory gave us one OpenAI-compatible endpoint and one API shape for {number(len(site.data["models"]))} models, with tool calling across every route. We could keep the same request machinery as we moved between models. When we found serving issues, we reported them with evidence so the gateway team could act. You can get access through the Mirantis TokenFactory portal linked in the footer.',
         'exe.dev gave us named Linux VMs we could reach over plain SSH, resize in place and run with Docker and systemd. Its integration kept our gateway credential off every worker. We retained our queues through resizing and used familiar tools to collect the results. Thank you for making it possible to keep working on the same machines as the run grew.',
     ]
-    body = '<p class="lede">We ran this benchmark with TokenFactory and exe.dev. Their gateway, machines and credential integration let us put our protocol to work and bring the results back for you to inspect.</p>'
+    body = '<p class="lede">We ran this benchmark with Mirantis TokenFactory and exe.dev. Their gateway, machines and credential integration let us put our protocol to work and bring the results back for you to inspect.</p>'
     for partner, paragraph in zip(site.partners, paragraphs):
         body += f'<section><h2>{E(partner["name"])}</h2><p>{paragraph}</p><p>{site.partner_link(partner)}</p></section>'
-    body += '<section><h2>How we worked together</h2><p>We at Spec Kitty wrote the scheduling, recovery and grading logic and prepared this publication. TokenFactory carried the model requests, and exe.dev ran the machines behind them. Thank you to both teams for the concrete things that made this work possible. You can read how we used them in the <a href="methodology.html#infrastructure">infrastructure account</a> and follow the run’s interruptions in the <a href="methodology.html#incidents">incident notes</a>.</p></section>'
+    body += '<section><h2>How we worked together</h2><p>We at Spec Kitty wrote the scheduling, recovery and grading logic and prepared this publication. Mirantis TokenFactory carried the model requests, and exe.dev ran the machines behind them. Thank you to both teams for the concrete things that made this work possible. You can read how we used them in the <a href="methodology.html#infrastructure">infrastructure account</a> and follow the run’s interruptions in the <a href="methodology.html#incidents">incident notes</a>.</p></section>'
     body += f'<p>{JOINT_PROJECT} <a href="research.html">For researchers: what you can do with the evidence</a>.</p>'
     site.page('about.html', 'Who made this', body)
 
@@ -1511,7 +1511,7 @@ def build_methodology(site, metrics):
     body += f'<p>Context proxy: {E(protocol["context_proxy_tokenizer"])}. Scaffold: {E(protocol["scaffold"])}. Container network: {E(protocol["container_network"])}; memory: {E(protocol["container_memory"])}. The wall limit is checked between calls, so a slow call can extend elapsed time up to the outer process limit.</p>'
     body += f'<p>History isolation: {E(protocol["repository_history"])}. A fresh object store exposes only the dataset base commit; ancestor and future commits and remotes are unavailable. Each prediction needs matching isolation evidence.</p>'
     body += infrastructure_section(site)
-    body += f'<h2>A shared gateway and an inspectable result</h2><p>TokenFactory gave us one OpenAI-compatible endpoint and one API shape for {number(len(d["models"]))} models, with tool calling across every route. We could use the same request machinery throughout the run. When we found serving issues, we reported them with evidence so the gateway team could act. Thank you for giving us a shared way to reach these models. You can get access through the TokenFactory portal linked in the footer.</p><p>We at Spec Kitty ran the benchmark and graded predictions with the official SWE-bench harness. We publish results and trajectories alongside the protocol and incident notes so you can trace a score back to an attempt. The evidence page shows what has been packaged, and grading coverage stays visible with the scores.</p>'
+    body += f'<h2>A shared gateway and an inspectable result</h2><p>Mirantis TokenFactory gave us one OpenAI-compatible endpoint and one API shape for {number(len(d["models"]))} models, with tool calling across every route. We could use the same request machinery throughout the run. When we found serving issues, we reported them with evidence so the gateway team could act. Thank you for giving us a shared way to reach these models. You can get access through the Mirantis TokenFactory portal linked in the footer.</p><p>We at Spec Kitty ran the benchmark and graded predictions with the official SWE-bench harness. We publish results and trajectories alongside the protocol and incident notes so you can trace a score back to an attempt. The evidence page shows what has been packaged, and grading coverage stays visible with the scores.</p>'
     body += '<h2>Outcome definitions</h2><dl><dt>Resolved</dt><dd>Completed grading with a resolved result, prediction identity and required harness evidence validated by the source report.</dd><dt>Unresolved</dt><dd>Completed grading without resolution, including validated empty patches, patch-apply failures and explicitly reviewed patch-induced test timeouts.</dd><dt>Ungraded</dt><dd>A prediction without a completed accepted grade, or a grade whose required evidence or current amendment is missing. A test timeout remains ungraded until reviewed.</dd><dt>Missing</dt><dd>No prediction and no grade in the collected report. This can include pending, paused or uncollected work; it is not a failure result.</dd></dl>'
     body += f'<p>The site consumes <code>scripts/report.py</code> exports and checks summary and repository counts against every CSV row. <code>scripts/subsets.py</code> supplies the Verified counts: <code>astropy__astropy-7606</code> has a different PASS_TO_PASS contract and needs supplemental grading. We never borrow its Full result. Lite uses matching Full contracts. Wilson intervals use {CONFIDENCE*100:g}% confidence and the graded denominator; the benchmark is a fixed task set, so these are descriptive sampling intervals, not uncertainty over model randomness.</p>'
     body += '<h2>Grading amendments</h2><p>The following task-wide amendments set <code>OMP_NUM_THREADS=1</code> for all nonempty submissions, including previously completed grades. Official tests and the harness time limit stay unchanged. Original evidence remains archived; diagnostic tests are unscored and inference is not repeated.</p>'
@@ -1690,7 +1690,7 @@ def build_research(site, inventory):
                        if examples['first'] else '<p>No resolved attempt is recorded yet; the example will appear after grading.</p>')
     citation = ('@misc{spec_kitty_swe_bench,\n'
                 f'  title = {{{HEADLINE}}},\n'
-                '  author = {{Spec Kitty} and {TokenFactory} and {exe.dev}},\n'
+                '  author = {{Spec Kitty} and {Mirantis TokenFactory} and {exe.dev}},\n'
                 f'  year = {{{checked.year}}},\n'
                 f'  url = {{{config["repository_url"]}}}\n'
                 '}')

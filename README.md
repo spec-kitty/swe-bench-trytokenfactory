@@ -2,7 +2,7 @@
 
 We ran 12 models through the same agent, the same gateway and the official SWE-bench grader: 2,294 tasks each, 27,528 attempts, one attempt per model per task. This repository holds the results site and the evidence behind every number on it.
 
-A joint project of [Spec Kitty](https://spec-kitty.ai), [TokenFactory](https://portal.trytokenfactory.dev/) and [exe.dev](https://exe.dev). Spec Kitty ran and graded the benchmark, TokenFactory provided the inference gateway, and exe.dev provided the VMs it ran on.
+A joint project of [Spec Kitty](https://spec-kitty.ai), [Mirantis TokenFactory](https://portal.trytokenfactory.dev/) and [exe.dev](https://exe.dev). Spec Kitty ran and graded the benchmark, Mirantis TokenFactory provided the inference gateway, and exe.dev provided the VMs it ran on.
 
 ## What is here
 

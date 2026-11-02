@@ -10,7 +10,7 @@
       "role": "ran the benchmark and graded predictions with the official SWE-bench harness. We publish results and trajectories so you can inspect the work behind each score."
     },
     {
-      "name": "TokenFactory",
+      "name": "Mirantis TokenFactory",
       "url": "https://portal.trytokenfactory.dev/",
       "role": "gave us one OpenAI-compatible endpoint for all {model_count} models, with tool calling across every route. Use the portal link above to get access."
     },

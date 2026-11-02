@@ -46,7 +46,7 @@ class PublicationGuardTests(unittest.TestCase):
 
     def test_clean_words_and_technical_counts_pass(self):
         b.publication_guard('Costa, costumer, credited, frontier, 128 slots, token counts, steps')
-        b.publication_guard('<p>Spec Kitty with TokenFactory and exe.dev</p>')
+        b.publication_guard('<p>Spec Kitty with Mirantis TokenFactory and exe.dev</p>')
 
     def test_html_entities_cannot_hide_amount_or_word(self):
         for text in ('&#36;5', '&dollar;5', 'pr&#105;ce'):
@@ -112,7 +112,7 @@ class PartnerTests(unittest.TestCase):
                 text = (site.out/relative).read_text()
                 parsed = PageParser(); parsed.feed(text)
                 for key in ('description', 'og:title', 'og:description', 'twitter:title', 'twitter:description'):
-                    for name in ('Spec Kitty', 'TokenFactory', 'exe.dev'):
+                    for name in ('Spec Kitty', 'Mirantis TokenFactory', 'exe.dev'):
                         self.assertIn(name, parsed.metas[key])
                 urls = [p['url'] for p in site.partners]
                 external = [a for a in parsed.links if a.get('href') in urls]
